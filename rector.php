@@ -35,6 +35,14 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->cacheDirectory('.cache/rector/');
     $rectorConfig->parallel();
     $rectorConfig->editorUrl('phpstorm://open?file=%file%&line=%line%');
+    $rectorConfig->autoloadPaths([
+        __DIR__.'/tools/phpunit/vendor/autoload.php',
+        __DIR__.'/tools/phpstan/vendor/autoload.php',
+    ]);
+    $rectorConfig->bootstrapFiles([
+        __DIR__.'/tools/phpunit/vendor/autoload.php',
+        __DIR__.'/tools/phpstan/vendor/autoload.php',
+    ]);
 
     $rectorConfig->sets([
         LevelSetList::UP_TO_PHP_82,

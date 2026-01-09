@@ -12,3 +12,8 @@ declare(strict_types=1);
  */
 
 require __DIR__.'/../vendor/autoload.php';
+
+$toolAutoload = __DIR__.'/../tools/phpstan/vendor/autoload.php';
+if (is_file($toolAutoload)) {
+    require_once $toolAutoload;
+}

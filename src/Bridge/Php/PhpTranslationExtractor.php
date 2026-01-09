@@ -226,7 +226,7 @@ final class PhpTranslationExtractor
 
             $key = $this->unquote($keyValue);
             $next = $this->nextNonWhitespaceTokenFrom($tokens, $i + 1);
-            if (null === $next || '=>' !== $next[0]) {
+            if (null === $next || !$this->isDoubleArrowToken($next[0])) {
                 continue;
             }
 
@@ -239,6 +239,18 @@ final class PhpTranslationExtractor
         }
 
         return $parameters;
+    }
+
+    /**
+     * @param Token $token
+     */
+    private function isDoubleArrowToken(array|string $token): bool
+    {
+        if (\is_array($token)) {
+            return \T_DOUBLE_ARROW === $token[0];
+        }
+
+        return '=>' === $token;
     }
 
     /**

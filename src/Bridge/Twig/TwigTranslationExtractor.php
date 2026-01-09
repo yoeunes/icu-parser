@@ -15,6 +15,7 @@ namespace IcuParser\Bridge\Twig;
 
 use IcuParser\Type\ParameterType;
 use IcuParser\Usage\TranslationUsage;
+use Symfony\Bridge\Twig\Node\TransNode;
 use Twig\Environment;
 use Twig\Node\Expression\ArrayExpression;
 use Twig\Node\Expression\ConstantExpression;
@@ -112,7 +113,7 @@ final readonly class TwigTranslationExtractor
         }
 
         $arguments = $node->hasNode('arguments') ? $node->getNode('arguments') : null;
-        $argumentNodes = $this->collectArgumentNodes($arguments);
+        $argumentNodes = $this->resolveFilterArguments($arguments);
 
         $parameters = $this->extractArrayLiteral($argumentNodes[0] ?? null);
         $domain = $this->resolveConstantString($argumentNodes[1] ?? null);
@@ -128,7 +129,7 @@ final readonly class TwigTranslationExtractor
 
     private function extractTransTag(Node $node, string $path): ?TranslationUsage
     {
-        if (!\class_exists('Twig\\Node\\TransNode') || !\is_a($node, 'Twig\\Node\\TransNode')) {
+        if (!$this->isTransNode($node)) {
             return null;
         }
 
@@ -158,10 +159,14 @@ final readonly class TwigTranslationExtractor
     }
 
     /**
-     * @return list<Node>
+     * @return array<int, Node>
      */
-    private function collectArgumentNodes(?Node $arguments): array
+    private function resolveFilterArguments(?Node $arguments): array
     {
+        if ($arguments instanceof ArrayExpression) {
+            return [$arguments];
+        }
+
         if (!$arguments instanceof Node) {
             return [];
         }
@@ -208,8 +213,22 @@ final readonly class TwigTranslationExtractor
             return [];
         }
 
-        /** @var list<array{0: Node, 1: Node}> $normalized */
-        $normalized = array_values($pairs);
+        $normalized = [];
+        foreach ($pairs as $pair) {
+            if (!\is_array($pair)) {
+                continue;
+            }
+
+            if (isset($pair['key'], $pair['value']) && $pair['key'] instanceof Node && $pair['value'] instanceof Node) {
+                $normalized[] = [$pair['key'], $pair['value']];
+
+                continue;
+            }
+
+            if (isset($pair[0], $pair[1]) && $pair[0] instanceof Node && $pair[1] instanceof Node) {
+                $normalized[] = [$pair[0], $pair[1]];
+            }
+        }
 
         return $normalized;
     }
@@ -228,6 +247,20 @@ final readonly class TwigTranslationExtractor
     private function resolveTransBody(Node $node): ?string
     {
         $buffer = '';
+
+        if ($node instanceof ConstantExpression) {
+            $value = $node->getAttribute('value');
+            if (\is_string($value)) {
+                return trim($value);
+            }
+        }
+
+        if (\is_a($node, 'Twig\\Node\\TextNode')) {
+            $data = $node->getAttribute('data');
+            if (\is_string($data)) {
+                return trim($data);
+            }
+        }
 
         foreach ($node as $child) {
             if (\is_a($child, 'Twig\\Node\\TextNode')) {
@@ -265,5 +298,18 @@ final readonly class TwigTranslationExtractor
         }
 
         return ParameterType::MIXED;
+    }
+
+    private function isTransNode(Node $node): bool
+    {
+        if (\class_exists(TransNode::class) && \is_a($node, 'Symfony\\Bridge\\Twig\\Node\\TransNode')) {
+            return true;
+        }
+
+        if (\class_exists('Twig\\Extra\\Translation\\Node\\TransNode') && \is_a($node, 'Twig\\Extra\\Translation\\Node\\TransNode')) {
+            return true;
+        }
+
+        return false;
     }
 }

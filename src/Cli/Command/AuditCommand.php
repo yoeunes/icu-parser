@@ -417,7 +417,10 @@ final class AuditCommand implements CommandInterface
      */
     private function collectFiles(string $path, array $extensions): array
     {
-        $normalizedExtensions = array_map(strtolower(...), $extensions);
+        $normalizedExtensions = [];
+        foreach ($extensions as $extension) {
+            $normalizedExtensions[] = strtolower($extension);
+        }
         $files = [];
 
         if (is_file($path)) {
