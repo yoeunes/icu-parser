@@ -1,0 +1,18 @@
+path:
+    - .php-cs-fixer.php
+    - rector.php
+    - bin/icu
+    - src/
+    - tests/
+
+exclude:
+    - Fixtures/
+
+jobs: 10
+
+extensions:
+    - php
+
+cache-dir: .cache/phplint/
+
+warning: true

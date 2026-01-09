@@ -1,0 +1,20 @@
+includes:
+    - extension.neon
+
+parameters:
+    level: max
+
+    tmpDir: .cache/phpstan
+
+    treatPhpDocTypesAsCertain: false
+
+    paths:
+        - bin
+        - src
+        - tests
+
+    editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
+
+    ignoreErrors:
+        - identifiers:
+            - classConstant.internalClass

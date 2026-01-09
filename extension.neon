@@ -1,0 +1,17 @@
+parametersSchema:
+    icuParser: structure([
+        enabled: bool(),
+        reportMissingOther: bool(),
+        reportDuplicateSelectors: bool(),
+        reportEmptyOptions: bool()
+    ])
+
+parameters:
+    icuParser:
+        enabled: true
+        reportMissingOther: true
+        reportDuplicateSelectors: true
+        reportEmptyOptions: true
+
+# PHPStan services will be added once the static analysis rule is implemented.
+services: []

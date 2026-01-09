@@ -1,0 +1,37 @@
+# Dependencies
+/vendor/
+/tools/**/vendor/
+/composer.lock
+
+# IDEs
+/.idea/
+/.vscode/
+
+# Cache & Temporary Files
+/.cache/
+/.task/*
+!/.task/
+!/.task/.gitkeep
+/.junie/
+/.phpunit.result.cache
+/.php-cs-fixer.cache
+
+# Build & Distribution
+/build/
+/coverage/
+
+# Logs
+*.log
+
+# OS Generated Files
+.DS_Store
+
+# Local Configuration Overrides
+/phpunit.xml
+/phpstan.neon
+
+/corpus/*
+!/corpus/
+!/corpus/.gitkeep
+!/corpus/corpus.log
+!/corpus/update
