@@ -118,24 +118,48 @@ final class SemanticValidatorTest extends TestCase
 
     public function test_is_message_empty_with_whitespace_only(): void
     {
+        // Use reflection to test the private isMessageEmpty method directly
+        $reflection = new \ReflectionClass($this->validator);
+        $method = $reflection->getMethod('isMessageEmpty');
+        $method->setAccessible(true);
+        
+        // Test with whitespace-only text - should return false (has content after trim)
         $whitespaceText = new \IcuParser\Node\TextNode('   ', 0, 3);
         $message = new \IcuParser\Node\MessageNode([$whitespaceText], 0, 3);
-        $parsedMessage = $this->parser->parse('Hello {name}');
-        
-        // This will trigger isMessageEmpty with whitespace-only text
-        $result = $this->validator->validate($parsedMessage, 'Hello {name}');
-        $this->assertFalse($result->hasErrors());
+        $result = $method->invoke($this->validator, $message);
+        $this->assertTrue($result, 'Message with only whitespace should be considered empty');
     }
 
     public function test_is_message_empty_with_mixed_whitespace_and_content(): void
     {
+        $reflection = new \ReflectionClass($this->validator);
+        $method = $reflection->getMethod('isMessageEmpty');
+        $method->setAccessible(true);
+        
+        // Test with whitespace + content text - should return false
         $whitespaceText = new \IcuParser\Node\TextNode('   ', 0, 3);
         $contentText = new \IcuParser\Node\TextNode('content', 3, 10);
         $message = new \IcuParser\Node\MessageNode([$whitespaceText, $contentText], 0, 10);
-        $parsedMessage = $this->parser->parse('Hello {name}');
+        $result = $method->invoke($this->validator, $message);
+        $this->assertFalse($result, 'Message with content should not be empty');
+    }
+
+    public function test_is_message_empty_completely_empty(): void
+    {
+        $reflection = new \ReflectionClass($this->validator);
+        $method = $reflection->getMethod('isMessageEmpty');
+        $method->setAccessible(true);
         
-        $result = $this->validator->validate($parsedMessage, 'Hello {name}');
-        $this->assertFalse($result->hasErrors());
+        // Test with completely empty message - should return true (covers line 130-131)
+        $emptyMessage = new \IcuParser\Node\MessageNode([], 0, 0);
+        $result = $method->invoke($this->validator, $emptyMessage);
+        $this->assertTrue($result, 'Empty message should be considered empty');
+        
+        // Test with only whitespace text nodes - should return true (covers line 140 and 150)
+        $whitespaceText = new \IcuParser\Node\TextNode('   ', 0, 3);
+        $whitespaceMessage = new \IcuParser\Node\MessageNode([$whitespaceText], 0, 3);
+        $result = $method->invoke($this->validator, $whitespaceMessage);
+        $this->assertTrue($result, 'Message with only whitespace should be considered empty');
     }
 
     public function test_is_message_empty_with_simple_argument_node(): void
@@ -155,31 +179,20 @@ final class SemanticValidatorTest extends TestCase
         $this->assertFalse($result->hasErrors()); // Original message should still be valid
     }
 
-    public function test_is_message_empty_completely_empty(): void
-    {
-        $emptyMessage = new \IcuParser\Node\MessageNode([], 0, 0);
-        $option = new \IcuParser\Node\OptionNode('test', $emptyMessage, 0, 0);
-        
-        $message = $this->parser->parse('{count, plural, other {# items}}');
-        $this->validator->validate($message, '{count, plural, other {# items}}');
-        
-        // Visit the empty option to trigger validation
-        $this->validator->visitOption($option);
-        
-        // The validation should detect the empty message
-        $result = $this->validator->validate($message, '{count, plural, other {# items}}');
-        $this->assertFalse($result->hasErrors()); // Original message is still valid
-    }
+
 
     public function test_current_context_with_empty_stack(): void
     {
+        $reflection = new \ReflectionClass($this->validator);
+        $method = $reflection->getMethod('currentContext');
+        $method->setAccessible(true);
+        
         // Create a simple message that doesn't involve any select/plural structures
         $message = $this->parser->parse('Hello world');
-        $result = $this->validator->validate($message, 'Hello world');
+        $this->validator->validate($message, 'Hello world');
         
-        $this->assertFalse($result->hasErrors());
-        
-        // The currentContext method should return null when context stack is empty
-        // This is tested implicitly by the validation process
+        // Directly test currentContext with empty stack (covers line 173-174)
+        $context = $method->invoke($this->validator);
+        $this->assertNull($context, 'Current context should be null when stack is empty');
     }
 }
