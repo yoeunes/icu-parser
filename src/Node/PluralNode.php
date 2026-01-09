@@ -21,7 +21,7 @@ use IcuParser\NodeVisitor\NodeVisitorInterface;
 final readonly class PluralNode extends ArgumentNode
 {
     /**
-     * @param array<OptionNode> $options
+     * @param array<int, OptionNode> $options
      */
     public function __construct(
         string $name,

@@ -14,7 +14,3 @@ parameters:
         - tests
 
     editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
-
-    ignoreErrors:
-        - identifiers:
-            - classConstant.internalClass

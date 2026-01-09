@@ -43,6 +43,9 @@ final class ValidationError implements \JsonSerializable
         return $this->errorCode;
     }
 
+    /**
+     * @return array{message: string, position: int|null, snippet: string, code: string|null}
+     */
     public function jsonSerialize(): array
     {
         return [

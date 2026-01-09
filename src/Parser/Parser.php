@@ -20,6 +20,7 @@ use IcuParser\Lexer\TokenStream;
 use IcuParser\Lexer\TokenType;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
+use IcuParser\Node\NodeInterface;
 use IcuParser\Node\OptionNode;
 use IcuParser\Node\PluralNode;
 use IcuParser\Node\PoundNode;
@@ -39,9 +40,7 @@ final class Parser
 
     private int $pluralDepth = 0;
 
-    public function __construct(private readonly Lexer $lexer = new Lexer())
-    {
-    }
+    public function __construct(private readonly Lexer $lexer = new Lexer()) {}
 
     /**
      * @throws ParserException
@@ -68,6 +67,7 @@ final class Parser
 
     private function parseMessage(): MessageNode
     {
+        /** @var list<NodeInterface> $parts */
         $parts = [];
         $textBuffer = '';
         $textStart = null;
@@ -86,7 +86,10 @@ final class Parser
             if (TokenType::T_LBRACE === $token->type) {
                 $this->flushText($parts, $textBuffer, $textStart, $textEnd);
                 $parts[] = $this->parseArgument();
-                $end = $parts[array_key_last($parts)]->getEndPosition();
+                $lastKey = array_key_last($parts);
+                $last = $parts[$lastKey];
+                $end = $last->getEndPosition();
+
                 continue;
             }
 
@@ -95,21 +98,16 @@ final class Parser
                 $parts[] = new PoundNode($token->position, $token->getEndPosition());
                 $this->advance();
                 $end = $token->getEndPosition();
+
                 continue;
             }
 
             $this->appendTextToken($token, $textBuffer, $textStart, $textEnd);
             $this->advance();
-            if (null !== $textEnd) {
-                $end = $textEnd;
-            }
+            $end = $textEnd;
         }
 
         $this->flushText($parts, $textBuffer, $textStart, $textEnd);
-
-        if (null !== $textEnd) {
-            $end = $textEnd;
-        }
 
         return new MessageNode($parts, $start, $end);
     }
@@ -161,6 +159,7 @@ final class Parser
             $offset = $this->parseOffset();
         }
 
+        /** @var list<OptionNode> $options */
         $options = [];
 
         while (!$this->tokens->isAtEnd() && !$this->check(TokenType::T_RBRACE)) {
@@ -271,6 +270,10 @@ final class Parser
         return '' !== $style ? trim($style) : null;
     }
 
+    /**
+     * @param-out int  $start
+     * @param-out int  $end
+     */
     private function appendTextToken(Token $token, string &$buffer, ?int &$start, ?int &$end): void
     {
         if (null === $start) {
@@ -282,7 +285,10 @@ final class Parser
     }
 
     /**
-     * @param array<int, object> $parts
+     * @param array<int, NodeInterface> $parts
+     *
+     * @param-out null                 $start
+     * @param-out null                 $end
      */
     private function flushText(array &$parts, string &$buffer, ?int &$start, ?int &$end): void
     {

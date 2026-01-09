@@ -52,6 +52,9 @@ final class TypeMap implements \JsonSerializable
         return $this->types[$name] ?? null;
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function jsonSerialize(): array
     {
         $payload = [];

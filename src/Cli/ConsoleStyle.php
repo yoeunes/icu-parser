@@ -24,6 +24,9 @@ final readonly class ConsoleStyle
         private bool $visuals = true,
     ) {}
 
+    /**
+     * @param array<string, string> $meta
+     */
     public function renderBanner(string $command, array $meta = [], ?string $tagline = null): void
     {
         if (!$this->visuals) {

@@ -77,6 +77,7 @@ final class LintCommand implements CommandInterface
             $messages = $this->extractMessages($file);
             foreach ($messages as $message) {
                 $checked++;
+
                 try {
                     $ast = $parser->parse($message['value']);
                 } catch (IcuParserException $exception) {
@@ -128,7 +129,7 @@ final class LintCommand implements CommandInterface
     }
 
     /**
-     * @return array<int, string>
+     * @return list<string>
      */
     private function findFiles(string $path): array
     {
@@ -143,6 +144,10 @@ final class LintCommand implements CommandInterface
         );
 
         foreach ($iterator as $file) {
+            if (!$file instanceof \SplFileInfo) {
+                continue;
+            }
+
             if (!$file->isFile()) {
                 continue;
             }
@@ -159,7 +164,7 @@ final class LintCommand implements CommandInterface
 
     private function isSupportedFile(string $file): bool
     {
-        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($file, \PATHINFO_EXTENSION));
 
         return in_array($extension, self::EXTENSIONS, true);
     }
@@ -169,7 +174,7 @@ final class LintCommand implements CommandInterface
      */
     private function extractMessages(string $file): array
     {
-        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($file, \PATHINFO_EXTENSION));
         $contents = file_get_contents($file);
         if (false === $contents) {
             return [];

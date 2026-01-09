@@ -36,31 +36,31 @@ final class TypeInferer extends AbstractNodeVisitor
         return $this->types;
     }
 
-    public function visitSimpleArgument(SimpleArgumentNode $node)
+    public function visitSimpleArgument(SimpleArgumentNode $node): void
     {
         $this->types->add($node->name, ParameterType::STRING);
     }
 
-    public function visitFormattedArgument(FormattedArgumentNode $node)
+    public function visitFormattedArgument(FormattedArgumentNode $node): void
     {
         $this->types->add($node->name, $this->mapFormat($node->format));
     }
 
-    public function visitSelect(SelectNode $node)
+    public function visitSelect(SelectNode $node): void
     {
         $this->types->add($node->name, ParameterType::STRING);
 
         parent::visitSelect($node);
     }
 
-    public function visitPlural(PluralNode $node)
+    public function visitPlural(PluralNode $node): void
     {
         $this->types->add($node->name, ParameterType::NUMBER);
 
         parent::visitPlural($node);
     }
 
-    public function visitSelectOrdinal(SelectOrdinalNode $node)
+    public function visitSelectOrdinal(SelectOrdinalNode $node): void
     {
         $this->types->add($node->name, ParameterType::NUMBER);
 

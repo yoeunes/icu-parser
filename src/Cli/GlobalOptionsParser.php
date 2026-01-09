@@ -29,26 +29,31 @@ final class GlobalOptionsParser
         foreach ($args as $arg) {
             if ('--help' === $arg || '-h' === $arg) {
                 $help = true;
+
                 continue;
             }
 
             if ('--ansi' === $arg) {
                 $ansi = true;
+
                 continue;
             }
 
             if ('--no-ansi' === $arg) {
                 $ansi = false;
+
                 continue;
             }
 
             if ('-q' === $arg || '--quiet' === $arg) {
                 $quiet = true;
+
                 continue;
             }
 
             if ('--no-banner' === $arg) {
                 $banner = false;
+
                 continue;
             }
 

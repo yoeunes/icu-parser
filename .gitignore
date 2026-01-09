@@ -35,3 +35,5 @@
 !/corpus/.gitkeep
 !/corpus/corpus.log
 !/corpus/update
+
+.phplint.cache/

@@ -47,7 +47,7 @@ final class SemanticValidator extends AbstractNodeVisitor
         return $this->result;
     }
 
-    public function visitSelect(SelectNode $node)
+    public function visitSelect(SelectNode $node): void
     {
         $this->pushContext('select', $node->name);
         $this->validateOptions($node->options, 'select', $node->name, $node->startPosition);
@@ -55,7 +55,7 @@ final class SemanticValidator extends AbstractNodeVisitor
         $this->popContext();
     }
 
-    public function visitPlural(PluralNode $node)
+    public function visitPlural(PluralNode $node): void
     {
         $this->pushContext('plural', $node->name);
         $this->validateOptions($node->options, 'plural', $node->name, $node->startPosition);
@@ -63,7 +63,7 @@ final class SemanticValidator extends AbstractNodeVisitor
         $this->popContext();
     }
 
-    public function visitSelectOrdinal(SelectOrdinalNode $node)
+    public function visitSelectOrdinal(SelectOrdinalNode $node): void
     {
         $this->pushContext('selectordinal', $node->name);
         $this->validateOptions($node->options, 'selectordinal', $node->name, $node->startPosition);
@@ -71,7 +71,7 @@ final class SemanticValidator extends AbstractNodeVisitor
         $this->popContext();
     }
 
-    public function visitOption(OptionNode $node)
+    public function visitOption(OptionNode $node): void
     {
         if ($this->isMessageEmpty($node->message)) {
             $context = $this->currentContext();
@@ -109,6 +109,7 @@ final class SemanticValidator extends AbstractNodeVisitor
                     $option->startPosition,
                     'validator.duplicate_option',
                 );
+
                 continue;
             }
 
@@ -135,6 +136,7 @@ final class SemanticValidator extends AbstractNodeVisitor
                 if ('' !== trim($part->text)) {
                     return false;
                 }
+
                 continue;
             }
 

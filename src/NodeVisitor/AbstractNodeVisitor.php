@@ -25,55 +25,49 @@ use IcuParser\Node\TextNode;
 
 /**
  * Default visitor that recursively traverses child nodes.
+ *
+ * @implements NodeVisitorInterface<void>
  */
 abstract class AbstractNodeVisitor implements NodeVisitorInterface
 {
-    public function visitMessage(MessageNode $node)
+    public function visitMessage(MessageNode $node): void
     {
         foreach ($node->parts as $part) {
             $part->accept($this);
         }
     }
 
-    public function visitText(TextNode $node)
-    {
-    }
+    public function visitText(TextNode $node): void {}
 
-    public function visitSimpleArgument(SimpleArgumentNode $node)
-    {
-    }
+    public function visitSimpleArgument(SimpleArgumentNode $node): void {}
 
-    public function visitFormattedArgument(FormattedArgumentNode $node)
-    {
-    }
+    public function visitFormattedArgument(FormattedArgumentNode $node): void {}
 
-    public function visitSelect(SelectNode $node)
+    public function visitSelect(SelectNode $node): void
     {
         foreach ($node->options as $option) {
             $option->accept($this);
         }
     }
 
-    public function visitPlural(PluralNode $node)
+    public function visitPlural(PluralNode $node): void
     {
         foreach ($node->options as $option) {
             $option->accept($this);
         }
     }
 
-    public function visitSelectOrdinal(SelectOrdinalNode $node)
+    public function visitSelectOrdinal(SelectOrdinalNode $node): void
     {
         foreach ($node->options as $option) {
             $option->accept($this);
         }
     }
 
-    public function visitOption(OptionNode $node)
+    public function visitOption(OptionNode $node): void
     {
         $node->message->accept($this);
     }
 
-    public function visitPound(PoundNode $node)
-    {
-    }
+    public function visitPound(PoundNode $node): void {}
 }

@@ -33,11 +33,14 @@ final readonly class IcuRuntimeInfo implements \JsonSerializable
         $icuVersion = 'missing';
         if ($intlLoaded) {
             if (function_exists('intl_get_icu_version')) {
-                $icuVersion = (string) intl_get_icu_version();
-            } elseif (class_exists('Intl') && method_exists('Intl', 'getIcuVersion')) {
-                $icuVersion = (string) \Intl::getIcuVersion();
+                $icuVersionValue = intl_get_icu_version();
+                if (is_string($icuVersionValue) || is_numeric($icuVersionValue)) {
+                    $icuVersion = (string) $icuVersionValue;
+                } else {
+                    $icuVersion = 'unknown';
+                }
             } elseif (defined('INTL_ICU_VERSION')) {
-                $icuVersion = (string) INTL_ICU_VERSION;
+                $icuVersion = (string) \INTL_ICU_VERSION;
             } else {
                 $icuVersion = 'unknown';
             }
@@ -45,12 +48,16 @@ final readonly class IcuRuntimeInfo implements \JsonSerializable
 
         $locale = 'unknown';
         if ($intlLoaded && class_exists('Locale')) {
-            $locale = \Locale::getDefault();
+            $localeValue = \Locale::getDefault();
+            $locale = is_string($localeValue) ? $localeValue : (string) $localeValue;
         }
 
         return new self(\PHP_VERSION, $intlVersion, $icuVersion, $locale);
     }
 
+    /**
+     * @return array{php: string, intl: string, icu: string, locale: string}
+     */
     public function jsonSerialize(): array
     {
         return [

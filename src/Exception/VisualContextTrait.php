@@ -20,13 +20,13 @@ trait VisualContextTrait
 {
     private const MAX_CONTEXT_WIDTH = 80;
 
-    private ?string $message = null;
+    private ?string $source = null;
 
     private string $visualSnippet = '';
 
     public function getMessageSource(): ?string
     {
-        return $this->message;
+        return $this->source;
     }
 
     public function getVisualSnippet(): string
@@ -34,27 +34,27 @@ trait VisualContextTrait
         return $this->visualSnippet;
     }
 
-    private function initializeContext(?int $position, ?string $message): void
+    private function initializeContext(?int $position, ?string $source): void
     {
-        $this->message = $message;
-        $this->visualSnippet = $this->buildVisualSnippet($position, $message);
+        $this->source = $source;
+        $this->visualSnippet = $this->buildVisualSnippet($position, $source);
     }
 
-    private function buildVisualSnippet(?int $position, ?string $message): string
+    private function buildVisualSnippet(?int $position, ?string $source): string
     {
-        if (null === $message || null === $position || $position < 0) {
+        if (null === $source || null === $position || $position < 0) {
             return '';
         }
 
-        $length = \strlen($message);
+        $length = \strlen($source);
         $caretIndex = $position > $length ? $length : $position;
 
-        $lineStart = strrpos($message, "\n", $caretIndex - $length);
+        $lineStart = strrpos($source, "\n", $caretIndex - $length);
         $lineStart = false === $lineStart ? 0 : $lineStart + 1;
-        $lineEnd = strpos($message, "\n", $caretIndex);
+        $lineEnd = strpos($source, "\n", $caretIndex);
         $lineEnd = false === $lineEnd ? $length : $lineEnd;
 
-        $lineNumber = substr_count($message, "\n", 0, $lineStart) + 1;
+        $lineNumber = substr_count($source, "\n", 0, $lineStart) + 1;
 
         $displayStart = $lineStart;
         $displayEnd = $lineEnd;
@@ -73,7 +73,7 @@ trait VisualContextTrait
         $suffixEllipsis = $displayEnd < $lineEnd ? '...' : '';
 
         $excerpt = $prefixEllipsis
-            .substr($message, $displayStart, $displayEnd - $displayStart)
+            .substr($source, $displayStart, $displayEnd - $displayStart)
             .$suffixEllipsis;
 
         $caretOffset = ('' === $prefixEllipsis ? 0 : 3) + ($caretIndex - $displayStart);

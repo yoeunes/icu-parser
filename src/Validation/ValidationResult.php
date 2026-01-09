@@ -50,6 +50,9 @@ final class ValidationResult implements \JsonSerializable
         }
     }
 
+    /**
+     * @return array<int, array{message: string, position: int|null, snippet: string, code: string|null}>
+     */
     public function jsonSerialize(): array
     {
         return array_map(

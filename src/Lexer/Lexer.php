@@ -20,9 +20,6 @@ use IcuParser\Exception\LexerException;
  */
 final class Lexer
 {
-    /**
-     * @var array<string, TokenType>
-     */
     private const SINGLE_CHAR_TOKENS = [
         '{' => TokenType::T_LBRACE,
         '}' => TokenType::T_RBRACE,
@@ -32,9 +29,6 @@ final class Lexer
         '=' => TokenType::T_EQUAL,
     ];
 
-    /**
-     * @var array<string, bool>
-     */
     private const QUOTE_SPECIALS = [
         '{' => true,
         '}' => true,
@@ -59,12 +53,14 @@ final class Lexer
                 $token = $this->readQuotedOrLiteral($message, $position, $length);
                 $tokens[] = $token;
                 $position += $token->length;
+
                 continue;
             }
 
             if (isset(self::SINGLE_CHAR_TOKENS[$char])) {
                 $tokens[] = new Token(self::SINGLE_CHAR_TOKENS[$char], $char, $position, 1);
                 $position++;
+
                 continue;
             }
 
@@ -76,6 +72,7 @@ final class Lexer
                 }
                 $value = substr($message, $start, $position - $start);
                 $tokens[] = new Token(TokenType::T_WHITESPACE, $value, $start, $position - $start);
+
                 continue;
             }
 
@@ -87,6 +84,7 @@ final class Lexer
                 }
                 $value = substr($message, $start, $position - $start);
                 $tokens[] = new Token(TokenType::T_IDENTIFIER, $value, $start, $position - $start);
+
                 continue;
             }
 
@@ -104,6 +102,7 @@ final class Lexer
                 }
                 $value = substr($message, $start, $position - $start);
                 $tokens[] = new Token(TokenType::T_NUMBER, $value, $start, $position - $start);
+
                 continue;
             }
 
@@ -149,6 +148,7 @@ final class Lexer
                 if ('\'' === $next) {
                     $literal .= "'";
                     $position += 2;
+
                     continue;
                 }
 
