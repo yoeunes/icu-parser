@@ -83,6 +83,82 @@ final class TwigTranslationExtractorTest extends TestCase
         $this->assertSame([], $usages[0]->parameters);
     }
 
+    public function test_extract_from_file(): void
+    {
+        $twig = $this->createEnvironment();
+        $extractor = new TwigTranslationExtractor($twig);
+
+        $template = "{{ 'app.file'|trans }}";
+        $path = tempnam(sys_get_temp_dir(), 'twig');
+        file_put_contents($path, $template);
+
+        try {
+            $usages = $extractor->extractFromFile($path);
+
+            $this->assertCount(1, $usages);
+            $this->assertSame('app.file', $usages[0]->id);
+            $this->assertSame($path, $usages[0]->file);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function test_extract_from_file_nonexistent(): void
+    {
+        $twig = $this->createEnvironment();
+        $extractor = new TwigTranslationExtractor($twig);
+
+        $usages = $extractor->extractFromFile('/nonexistent/path');
+
+        $this->assertSame([], $usages);
+    }
+
+    public function test_extracts_filter_with_domain(): void
+    {
+        $twig = $this->createEnvironment();
+        $extractor = new TwigTranslationExtractor($twig);
+
+        $template = "{{ 'app.domain'|trans({}, 'custom') }}";
+        $usages = $extractor->extractFromSource($template, 'template.twig');
+
+        $this->assertCount(1, $usages);
+        $this->assertSame('app.domain', $usages[0]->id);
+        $this->assertSame('custom', $usages[0]->domain);
+    }
+
+    public function test_extracts_trans_tag_with_domain(): void
+    {
+        $twig = $this->createEnvironment(true);
+        $extractor = new TwigTranslationExtractor($twig);
+
+        $template = <<<'TWIG'
+            {% trans with {'name': 'Ada'} from 'custom' %}app.domain{% endtrans %}
+            TWIG;
+
+        $usages = $extractor->extractFromSource($template, 'template.twig');
+
+        $this->assertCount(1, $usages);
+        $this->assertSame('app.domain', $usages[0]->id);
+        $this->assertSame('custom', $usages[0]->domain);
+    }
+
+    public function test_handles_mixed_parameter_types(): void
+    {
+        $twig = $this->createEnvironment();
+        $extractor = new TwigTranslationExtractor($twig);
+
+        $template = "{{ 'app.mixed'|trans({'str': 'text', 'num': 42, 'float': 3.14, 'obj': some_var}) }}";
+        $usages = $extractor->extractFromSource($template, 'template.twig');
+
+        $this->assertCount(1, $usages);
+        $this->assertSame([
+            'str' => ParameterType::STRING,
+            'num' => ParameterType::NUMBER,
+            'float' => ParameterType::NUMBER,
+            'obj' => ParameterType::MIXED,
+        ], $usages[0]->parameters);
+    }
+
     private function createEnvironment(bool $withTransTag = false): Environment
     {
         if (!class_exists(Environment::class)) {
