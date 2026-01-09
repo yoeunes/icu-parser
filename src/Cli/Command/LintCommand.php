@@ -17,14 +17,13 @@ use IcuParser\Cli\ConsoleStyle;
 use IcuParser\Cli\Input;
 use IcuParser\Cli\Output;
 use IcuParser\Exception\IcuParserException;
+use IcuParser\Loader\TranslationLoader;
 use IcuParser\Parser\Parser;
 use IcuParser\Runtime\IcuRuntimeInfo;
 use IcuParser\Validation\SemanticValidator;
 
 final class LintCommand implements CommandInterface
 {
-    private const EXTENSIONS = ['yml', 'yaml', 'xlf', 'xliff'];
-
     public function getName(): string
     {
         return 'lint';
@@ -61,9 +60,16 @@ final class LintCommand implements CommandInterface
             $style->renderBanner('Lint', $meta, 'ICU MessageFormat linting');
         }
 
-        $files = $this->findFiles($path);
-        if ([] === $files) {
-            $output->write($output->warning('No YAML or XLIFF files found.')."\n");
+        $loader = new TranslationLoader([$path], 'und');
+        $entries = [];
+        $files = [];
+        foreach ($loader->scan() as $entry) {
+            $entries[] = $entry;
+            $files[$entry->file] = true;
+        }
+
+        if ([] === $entries) {
+            $output->write($output->warning('No translation messages found.')."\n");
 
             return 0;
         }
@@ -73,40 +79,37 @@ final class LintCommand implements CommandInterface
         $issues = 0;
         $checked = 0;
 
-        foreach ($files as $file) {
-            $messages = $this->extractMessages($file);
-            foreach ($messages as $message) {
-                $checked++;
+        foreach ($entries as $entry) {
+            $checked++;
 
-                try {
-                    $ast = $parser->parse($message['value']);
-                } catch (IcuParserException $exception) {
-                    $issues++;
-                    $location = $file;
-                    if (null !== $message['line']) {
-                        $location .= ':'.$message['line'];
-                    }
-                    $output->write($output->error('Error').': '.$location.' - '.$exception->getMessage()."\n");
-                    $snippet = $exception->getSnippet();
-                    if (null !== $snippet && '' !== $snippet) {
-                        $output->write($snippet."\n");
-                    }
-
-                    continue;
+            try {
+                $ast = $parser->parse($entry->message);
+            } catch (IcuParserException $exception) {
+                $issues++;
+                $location = $entry->file;
+                if (null !== $entry->line) {
+                    $location .= ':'.$entry->line;
+                }
+                $output->write($output->error('Error').': '.$location.' - '.$exception->getMessage()."\n");
+                $snippet = $exception->getSnippet();
+                if (null !== $snippet && '' !== $snippet) {
+                    $output->write($snippet."\n");
                 }
 
-                $validation = $validator->validate($ast, $message['value']);
-                foreach ($validation->getErrors() as $error) {
-                    $issues++;
-                    $location = $file;
-                    if (null !== $message['line']) {
-                        $location .= ':'.$message['line'];
-                    }
-                    $output->write($output->error('Semantic error').': '.$location.' - '.$error->getMessage()."\n");
-                    $snippet = $error->getSnippet();
-                    if ('' !== $snippet) {
-                        $output->write($snippet."\n");
-                    }
+                continue;
+            }
+
+            $validation = $validator->validate($ast, $entry->message);
+            foreach ($validation->getErrors() as $error) {
+                $issues++;
+                $location = $entry->file;
+                if (null !== $entry->line) {
+                    $location .= ':'.$entry->line;
+                }
+                $output->write($output->error('Semantic error').': '.$location.' - '.$error->getMessage()."\n");
+                $snippet = $error->getSnippet();
+                if ('' !== $snippet) {
+                    $output->write($snippet."\n");
                 }
             }
         }
@@ -126,137 +129,5 @@ final class LintCommand implements CommandInterface
         $output->write($output->error($summary.' '.$issues.' issue(s) found.')."\n");
 
         return 1;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function findFiles(string $path): array
-    {
-        $files = [];
-
-        if (is_file($path)) {
-            return $this->isSupportedFile($path) ? [$path] : [];
-        }
-
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-        );
-
-        foreach ($iterator as $file) {
-            if (!$file instanceof \SplFileInfo) {
-                continue;
-            }
-
-            if (!$file->isFile()) {
-                continue;
-            }
-            $filePath = $file->getPathname();
-            if ($this->isSupportedFile($filePath)) {
-                $files[] = $filePath;
-            }
-        }
-
-        sort($files);
-
-        return $files;
-    }
-
-    private function isSupportedFile(string $file): bool
-    {
-        $extension = strtolower(pathinfo($file, \PATHINFO_EXTENSION));
-
-        return in_array($extension, self::EXTENSIONS, true);
-    }
-
-    /**
-     * @return array<int, array{value: string, line: int|null}>
-     */
-    private function extractMessages(string $file): array
-    {
-        $extension = strtolower(pathinfo($file, \PATHINFO_EXTENSION));
-        $contents = file_get_contents($file);
-        if (false === $contents) {
-            return [];
-        }
-
-        return match ($extension) {
-            'yml', 'yaml' => $this->extractYamlMessages($contents),
-            'xlf', 'xliff' => $this->extractXliffMessages($contents),
-            default => [],
-        };
-    }
-
-    /**
-     * @return array<int, array{value: string, line: int|null}>
-     */
-    private function extractYamlMessages(string $contents): array
-    {
-        $messages = [];
-        $lines = preg_split('/\R/', $contents) ?: [];
-
-        foreach ($lines as $index => $line) {
-            $trimmed = ltrim($line);
-            if ('' === $trimmed || str_starts_with($trimmed, '#')) {
-                continue;
-            }
-
-            if (!str_contains($line, ':')) {
-                continue;
-            }
-
-            [$key, $value] = explode(':', $line, 2);
-            $value = trim($value);
-            if ('' === $value || '|' === $value[0] || '>' === $value[0]) {
-                continue;
-            }
-
-            if (str_contains($value, ' #')) {
-                $value = trim(strstr($value, ' #', true) ?: $value);
-            }
-
-            if ((str_starts_with($value, '"') && str_ends_with($value, '"'))
-                || (str_starts_with($value, "'") && str_ends_with($value, "'"))
-            ) {
-                $value = substr($value, 1, -1);
-            }
-
-            if ('' !== $value) {
-                $messages[] = [
-                    'value' => $value,
-                    'line' => $index + 1,
-                ];
-            }
-        }
-
-        return $messages;
-    }
-
-    /**
-     * @return array<int, array{value: string, line: int|null}>
-     */
-    private function extractXliffMessages(string $contents): array
-    {
-        $messages = [];
-
-        $dom = new \DOMDocument();
-        $loaded = @$dom->loadXML($contents);
-        if (false === $loaded) {
-            return $messages;
-        }
-
-        foreach (['source', 'target'] as $tag) {
-            foreach ($dom->getElementsByTagName($tag) as $node) {
-                $value = trim($node->textContent);
-                if ('' !== $value) {
-                    $messages[] = [
-                        'value' => $value,
-                        'line' => null,
-                    ];
-                }
-            }
-        }
-
-        return $messages;
     }
 }

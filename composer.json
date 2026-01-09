@@ -71,6 +71,7 @@
     },
     "suggest": {
         "phpstan/phpstan": "To integrate ICU MessageFormat typing into static analysis.",
+        "symfony/framework-bundle": "To auto-register the IcuParser bundle in Symfony apps.",
         "symfony/translation": "To wire ICU parsing into Symfony translation workflows."
     }
 }

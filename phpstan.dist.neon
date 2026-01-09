@@ -17,6 +17,13 @@ parameters:
         - src
         - tests
 
+    icuParser:
+        paths:
+            - translations
+        defaultLocale: 'en'
+        defaultDomain: 'messages'
+        cacheDir: .cache/icu-parser
+
     bootstrapFiles:
         - tools/phpunit/vendor/autoload.php
 

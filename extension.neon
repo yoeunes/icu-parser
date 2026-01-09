@@ -1,17 +1,29 @@
 parametersSchema:
     icuParser: structure([
         enabled: bool(),
-        reportMissingOther: bool(),
-        reportDuplicateSelectors: bool(),
-        reportEmptyOptions: bool()
+        paths: arrayOf(string()),
+        defaultLocale: string(),
+        defaultDomain: string(),
+        cacheDir: string()
     ])
 
 parameters:
     icuParser:
         enabled: true
-        reportMissingOther: true
-        reportDuplicateSelectors: true
-        reportEmptyOptions: true
+        paths:
+            - translations
+        defaultLocale: 'en'
+        defaultDomain: 'messages'
+        cacheDir: .cache/icu-parser
 
-# PHPStan services will be added once the static analysis rule is implemented.
-services: []
+services:
+    -
+        class: IcuParser\Bridge\PHPStan\IcuMessageFormatRule
+        arguments:
+            enabled: %icuParser.enabled%
+            paths: %icuParser.paths%
+            defaultLocale: %icuParser.defaultLocale%
+            defaultDomain: %icuParser.defaultDomain%
+            cacheDir: %icuParser.cacheDir%
+        tags:
+            - phpstan.rules.rule
