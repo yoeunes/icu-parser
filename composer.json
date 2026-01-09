@@ -1,0 +1,54 @@
+{
+    "name": "yoeunes/icu-parser",
+    "description": "High-performance ICU MessageFormat parser with lexer, AST, type inference, and CLI tooling.",
+    "keywords": ["icu", "messageformat", "i18n", "parser", "lexer", "ast", "plural", "select", "php", "cli"],
+    "homepage": "https://github.com/yoeunes/icu-parser",
+    "type": "library",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/yoeunes/icu-parser/issues",
+        "source": "https://github.com/yoeunes/icu-parser",
+        "docs": "https://github.com/yoeunes/icu-parser#readme"
+    },
+    "authors": [
+        {
+            "name": "Younes ENNAJI",
+            "email": "younes.ennaji.pro@gmail.com",
+            "homepage": "https://www.linkedin.com/in/yoeunes/",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.2",
+        "ext-intl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "IcuParser\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "IcuParser\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/icu"
+    ],
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.x-dev"
+        }
+    },
+    "suggest": {
+        "phpstan/phpstan": "To integrate ICU MessageFormat typing into static analysis.",
+        "symfony/translation": "To wire ICU parsing into Symfony translation workflows."
+    }
+}
