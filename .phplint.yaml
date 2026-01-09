@@ -1,9 +1,10 @@
 path:
-    - .php-cs-fixer.php
+    - .php-cs-fixer.dist.php
     - rector.php
     - bin/icu
     - src/
     - tests/
+    - benchmarks/
 
 exclude:
     - Fixtures/

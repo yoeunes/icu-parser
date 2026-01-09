@@ -37,6 +37,20 @@
     "bin": [
         "bin/icu"
     ],
+    "scripts": {
+        "phpunit": "tools/phpunit/vendor/bin/phpunit",
+        "phpstan": "tools/phpstan/vendor/bin/phpstan analyse",
+        "rector": "tools/rector/vendor/bin/rector process",
+        "phpcs": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix",
+        "phplint": "tools/phplint/vendor/bin/phplint",
+        "lint": [
+            "@rector",
+            "@phpcs",
+            "@phplint",
+            "@phpunit",
+            "@phpstan"
+        ]
+    },
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
@@ -45,6 +59,14 @@
     "extra": {
         "branch-alias": {
             "dev-main": "0.x-dev"
+        },
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        },
+        "ide": {
+            "regex.dist.json": "./icu.schema.json"
         }
     },
     "suggest": {

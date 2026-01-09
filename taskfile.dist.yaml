@@ -6,7 +6,7 @@ tasks:
       - cmd: tools/php-cs-fixer/vendor/bin/php-cs-fixer fix --diff -v {{.CLI_ARGS}}
       - cmd: touch .task/phpcs.success
     sources:
-      - .php-cs-fixer.php
+      - .php-cs-fixer.dist.php
       - bin/**/*.php
       - src/**/*.php
       - tests/**/*.php
@@ -20,10 +20,10 @@ tasks:
 
   phplint:
     cmds:
-      - cmd: tools/phplint/vendor/bin/phplint -c .phplint.yaml {{.CLI_ARGS}}
+      - cmd: tools/phplint/vendor/bin/phplint {{.CLI_ARGS}}
       - cmd: touch .task/phplint.success
     sources:
-      - .phplint.yaml
+      - .phplint.yml
       - bin/**/*.php
       - src/**/*.php
       - tests/**/*.php
@@ -69,7 +69,7 @@ tasks:
       - cmd: tools/phpunit/vendor/bin/phpunit {{.CLI_ARGS}}
       - cmd: touch .task/phpunit.success
     sources:
-      - phpunit.xml.dist
+      - phpunit.dist.xml
       - src/**/*.php
       - tests/**/*.php
     generates:
@@ -96,7 +96,7 @@ tasks:
       - cmd: touch .task/infection.success
     sources:
       - infection.json.dist
-      - phpunit.xml.dist
+      - phpunit.dist.xml
       - src/**/*.php
       - tests/**/*.php
     generates:
@@ -114,7 +114,7 @@ tasks:
       - cmd: tools/phpunit/vendor/bin/phpunit --coverage-html coverage {{.CLI_ARGS}}
       - cmd: touch .task/coverage.success
     sources:
-      - phpunit.xml.dist
+      - phpunit.dist.xml
       - src/**/*.php
       - tests/**/*.php
     generates:

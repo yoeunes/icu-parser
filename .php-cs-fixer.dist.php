@@ -28,8 +28,6 @@ $finder = (new PhpCsFixer\Finder())
         __DIR__.'/benchmarks',
     ])
     ->exclude('Fixtures')
-    ->notPath('Unit/Cache/FilesystemCacheTest.php')
-    ->notPath('Unit/Lint/TokenBasedExtractionStrategyTest.php')
     ->name('*.php')
     ->ignoreDotFiles(true)
     ->ignoreVCS(true);
