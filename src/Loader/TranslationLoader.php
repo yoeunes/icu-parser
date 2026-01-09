@@ -17,6 +17,7 @@ use IcuParser\Catalog\Cache\CatalogCacheInterface;
 use IcuParser\Catalog\Cache\FilesystemCatalogCache;
 use IcuParser\Catalog\Cache\NullCatalogCache;
 use IcuParser\Catalog\Catalog;
+use IcuParser\Catalog\CatalogInterface;
 
 final class TranslationLoader
 {
@@ -29,7 +30,7 @@ final class TranslationLoader
 
     private readonly CatalogCacheInterface $cache;
 
-    private ?Catalog $catalog = null;
+    private ?CatalogInterface $catalog = null;
 
     /**
      * @param list<string> $paths
@@ -50,7 +51,7 @@ final class TranslationLoader
             : new NullCatalogCache();
     }
 
-    public function loadCatalog(): Catalog
+    public function loadCatalog(): CatalogInterface
     {
         if (null !== $this->catalog) {
             return $this->catalog;

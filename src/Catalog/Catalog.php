@@ -19,12 +19,12 @@ use IcuParser\Loader\TranslationExtractorInterface;
 /**
  * Lazy translation catalog: locale -> domain -> id -> message.
  */
-final class Catalog
+final class Catalog implements CatalogInterface
 {
-    public const CACHE_VERSION = '1';
+    public const CACHE_VERSION = '2';
 
     /**
-     * @var array<string, array<string, array<string, string>>>
+     * @var array<string, array<string, array<string, CatalogEntry>>>
      */
     private array $messages = [];
 
@@ -46,6 +46,13 @@ final class Catalog
     ) {}
 
     public function getMessage(string $id, ?string $locale = null, ?string $domain = null): ?string
+    {
+        $entry = $this->getEntry($id, $locale, $domain);
+
+        return $entry?->message;
+    }
+
+    public function getEntry(string $id, ?string $locale = null, ?string $domain = null): ?CatalogEntry
     {
         $resolvedLocale = $this->resolveLocale($locale);
         $resolvedDomain = $this->resolveDomain($domain);
@@ -80,6 +87,22 @@ final class Catalog
         return array_keys($this->index[$locale] ?? []);
     }
 
+    /**
+     * @return array<string, CatalogEntry>
+     */
+    public function getEntries(string $locale, ?string $domain = null): array
+    {
+        $resolvedDomain = $this->resolveDomain($domain);
+
+        if (!isset($this->index[$locale])) {
+            return [];
+        }
+
+        $this->ensureLoaded($locale, $resolvedDomain);
+
+        return $this->messages[$locale][$resolvedDomain] ?? [];
+    }
+
     private function ensureLoaded(string $locale, string $domain): void
     {
         if (isset($this->loaded[$locale][$domain])) {
@@ -88,23 +111,30 @@ final class Catalog
 
         $cached = $this->cache->getLocaleMessages($this->fingerprint, $locale, $domain);
         if (null !== $cached) {
-            $this->messages[$locale][$domain] = $cached;
+            $this->messages[$locale][$domain] = $this->hydrateEntries($cached);
             $this->loaded[$locale][$domain] = true;
 
             return;
         }
 
         $messages = [];
+        $payload = [];
         foreach ($this->index[$locale][$domain] ?? [] as $path) {
             $extraction = $this->extractor->extract($path);
             foreach ($extraction->messages as $key => $value) {
-                $messages[$key] = $value;
+                $line = $extraction->lines[$key] ?? null;
+                $messages[$key] = new CatalogEntry($key, $value, $path, $line);
+                $payload[$key] = [
+                    'message' => $value,
+                    'file' => $path,
+                    'line' => $line,
+                ];
             }
         }
 
         $this->messages[$locale][$domain] = $messages;
         $this->loaded[$locale][$domain] = true;
-        $this->cache->setLocaleMessages($this->fingerprint, $locale, $domain, $messages);
+        $this->cache->setLocaleMessages($this->fingerprint, $locale, $domain, $payload);
     }
 
     private function resolveLocale(?string $locale): ?string
@@ -132,5 +162,21 @@ final class Catalog
         }
 
         return $this->defaultDomain;
+    }
+
+    /**
+     * @param array<string, array{message: string, file: string, line: int|null}> $payload
+     *
+     * @return array<string, CatalogEntry>
+     */
+    private function hydrateEntries(array $payload): array
+    {
+        $entries = [];
+
+        foreach ($payload as $id => $data) {
+            $entries[$id] = new CatalogEntry($id, $data['message'], $data['file'], $data['line']);
+        }
+
+        return $entries;
     }
 }

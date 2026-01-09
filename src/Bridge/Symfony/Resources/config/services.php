@@ -12,6 +12,7 @@ declare(strict_types=1);
  */
 
 use IcuParser\Catalog\Catalog;
+use IcuParser\Catalog\CatalogInterface;
 use IcuParser\IcuParser;
 use IcuParser\Loader\TranslationLoader;
 use IcuParser\Parser\Parser;
@@ -43,4 +44,6 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(Catalog::class)
         ->factory([service(TranslationLoader::class), 'loadCatalog']);
+
+    $services->alias(CatalogInterface::class, Catalog::class);
 };

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace IcuParser\Bridge\PHPStan;
 
-use IcuParser\Catalog\Catalog;
+use IcuParser\Catalog\CatalogInterface;
 use IcuParser\Exception\IcuParserException;
 use IcuParser\Loader\TranslationLoader;
 use IcuParser\Parser\Parser;
@@ -58,7 +58,7 @@ final class IcuMessageFormatRule implements Rule
      */
     private readonly array $paths;
 
-    private ?Catalog $catalog = null;
+    private ?CatalogInterface $catalog = null;
 
     /**
      * @var array<string, array{error: string|null, types: array<string, ParameterType>, semantic: array<string>}>
@@ -395,7 +395,7 @@ final class IcuMessageFormatRule implements Rule
         ];
     }
 
-    private function getCatalog(): ?Catalog
+    private function getCatalog(): ?CatalogInterface
     {
         if ([] === $this->paths) {
             return null;

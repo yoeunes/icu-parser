@@ -42,6 +42,7 @@ if (null === $autoloadPath) {
 require_once $autoloadPath;
 
 use IcuParser\Cli\Application;
+use IcuParser\Cli\Command\AuditCommand;
 use IcuParser\Cli\Command\DebugCommand;
 use IcuParser\Cli\Command\HelpCommand;
 use IcuParser\Cli\Command\LintCommand;
@@ -56,11 +57,13 @@ $app = new Application($globalOptionsParser, $output, $helpCommand);
 $app->register($helpCommand);
 
 $debugCommand = new DebugCommand();
+$auditCommand = new AuditCommand();
 $lintCommand = new LintCommand();
 
 $app->register($debugCommand);
+$app->register($auditCommand);
 $app->register($lintCommand);
 
-$helpCommand->setCommands([$helpCommand, $debugCommand, $lintCommand]);
+$helpCommand->setCommands([$helpCommand, $debugCommand, $auditCommand, $lintCommand]);
 
 exit($app->run($argv));

@@ -13,10 +13,14 @@ declare(strict_types=1);
 
 namespace IcuParser\Bridge\Symfony\DependencyInjection;
 
+use IcuParser\Bridge\Twig\TwigTranslationExtractor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
+use Twig\Environment;
 
 final class IcuParserExtension extends Extension
 {
@@ -66,6 +70,15 @@ final class IcuParserExtension extends Extension
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.php');
+
+        if (class_exists(Environment::class) && ($container->hasDefinition('twig') || $container->hasAlias('twig'))) {
+            $definition = new Definition(TwigTranslationExtractor::class);
+            $definition->setArgument('$twig', new Reference('twig'));
+            $definition->setAutowired(true);
+            $definition->setAutoconfigured(true);
+
+            $container->setDefinition(TwigTranslationExtractor::class, $definition);
+        }
     }
 
     #[\Override]

@@ -36,11 +36,27 @@ final readonly class FilesystemCatalogCache implements CatalogCacheInterface
 
         $messages = [];
         foreach ($data as $key => $value) {
-            if (!\is_string($key) || !\is_string($value)) {
+            if (!\is_string($key) || !\is_array($value)) {
                 return null;
             }
 
-            $messages[$key] = $value;
+            $message = $value['message'] ?? null;
+            $file = $value['file'] ?? null;
+            $line = $value['line'] ?? null;
+
+            if (!\is_string($message) || !\is_string($file)) {
+                return null;
+            }
+
+            if (null !== $line && !\is_int($line)) {
+                return null;
+            }
+
+            $messages[$key] = [
+                'message' => $message,
+                'file' => $file,
+                'line' => $line,
+            ];
         }
 
         return $messages;

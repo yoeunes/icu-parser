@@ -16,12 +16,12 @@ namespace IcuParser\Catalog\Cache;
 interface CatalogCacheInterface
 {
     /**
-     * @return array<string, string>|null
+     * @return array<string, array{message: string, file: string, line: int|null}>|null
      */
     public function getLocaleMessages(string $fingerprint, string $locale, string $domain): ?array;
 
     /**
-     * @param array<string, string> $messages
+     * @param array<string, array{message: string, file: string, line: int|null}> $messages
      */
     public function setLocaleMessages(string $fingerprint, string $locale, string $domain, array $messages): void;
 }
