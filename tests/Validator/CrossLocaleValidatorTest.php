@@ -195,4 +195,73 @@ final class CrossLocaleValidatorTest extends TestCase
 
         $this->assertSame([], $issues);
     }
+
+    public function test_skips_when_no_locales_for_id(): void
+    {
+        $entries = [
+            'messages' => [
+                'app.greet' => [], // no locales
+            ],
+        ];
+
+        $types = [
+            'messages' => [
+                'app.greet' => [],
+            ],
+        ];
+
+        $issues = (new CrossLocaleValidator())->validate($entries, $types);
+
+        $this->assertSame([], $issues);
+    }
+
+    public function test_skips_when_no_types_for_baseline_locale(): void
+    {
+        $entries = [
+            'messages' => [
+                'app.greet' => [
+                    'en' => new TranslationEntry('messages.en.yaml', 'en', 'messages', 'app.greet', '{name}', 3),
+                    'fr' => new TranslationEntry('messages.fr.yaml', 'fr', 'messages', 'app.greet', '{name}', 3),
+                ],
+            ],
+        ];
+
+        $types = [
+            'messages' => [
+                'app.greet' => [
+                    // 'en' not present
+                    'fr' => ['name' => ParameterType::STRING],
+                ],
+            ],
+        ];
+
+        $issues = (new CrossLocaleValidator())->validate($entries, $types, 'en');
+
+        $this->assertSame([], $issues);
+    }
+
+    public function test_ignores_when_actual_type_is_mixed(): void
+    {
+        $entries = [
+            'messages' => [
+                'app.value' => [
+                    'en' => new TranslationEntry('messages.en.yaml', 'en', 'messages', 'app.value', '{value}', 1),
+                    'fr' => new TranslationEntry('messages.fr.yaml', 'fr', 'messages', 'app.value', '{value}', 1),
+                ],
+            ],
+        ];
+
+        $types = [
+            'messages' => [
+                'app.value' => [
+                    'en' => ['value' => ParameterType::STRING],
+                    'fr' => ['value' => ParameterType::MIXED],
+                ],
+            ],
+        ];
+
+        $issues = (new CrossLocaleValidator())->validate($entries, $types, 'en');
+
+        $this->assertSame([], $issues);
+    }
 }
