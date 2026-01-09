@@ -230,10 +230,8 @@ final class IcuParserExtensionTest extends TestCase
         $container = new ContainerBuilder();
         $configs = [];
 
-        $this->extension->load($configs, $container);
+        $this->expectNotToPerformAssertions();
 
-        // Services from services.php should be loaded
-        // This is a basic test - actual services would be defined in the services.php file
-        $this->assertTrue(true); // If no exception was thrown, services were loaded
+        $this->extension->load($configs, $container);
     }
 }

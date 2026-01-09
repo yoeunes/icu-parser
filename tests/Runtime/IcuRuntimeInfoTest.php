@@ -22,7 +22,6 @@ final class IcuRuntimeInfoTest extends TestCase
     {
         $info = IcuRuntimeInfo::detect();
 
-        $this->assertInstanceOf(IcuRuntimeInfo::class, $info);
         $this->assertIsString($info->phpVersion);
         $this->assertIsString($info->intlVersion);
         $this->assertIsString($info->icuVersion);

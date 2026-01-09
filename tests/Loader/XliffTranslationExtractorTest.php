@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace IcuParser\Tests\Loader;
 
-use IcuParser\Loader\TranslationExtraction;
 use IcuParser\Loader\XliffTranslationExtractor;
 use IcuParser\Tests\Support\FilesystemTestCase;
 
@@ -58,7 +57,6 @@ final class XliffTranslationExtractorTest extends FilesystemTestCase
     {
         $result = $this->extractor->extract('/nonexistent/file.xlf');
 
-        $this->assertInstanceOf(TranslationExtraction::class, $result);
         $this->assertSame([], $result->messages);
         $this->assertSame([], $result->lines);
     }
@@ -69,7 +67,6 @@ final class XliffTranslationExtractorTest extends FilesystemTestCase
 
         $result = $this->extractor->extract($tempFile);
 
-        $this->assertInstanceOf(TranslationExtraction::class, $result);
         $this->assertSame([], $result->messages);
         $this->assertSame([], $result->lines);
     }
@@ -95,7 +92,6 @@ final class XliffTranslationExtractorTest extends FilesystemTestCase
         $tempFile = $this->createTempFile('messages.xlf', $content);
         $result = $this->extractor->extract($tempFile);
 
-        $this->assertInstanceOf(TranslationExtraction::class, $result);
         $this->assertCount(2, $result->messages);
         $this->assertSame('Hello {name}', $result->messages['app.hello']);
         $this->assertSame('{count, plural, one {# item} other {# items}}', $result->messages['app.count']);
@@ -118,7 +114,6 @@ final class XliffTranslationExtractorTest extends FilesystemTestCase
         $tempFile = $this->createTempFile('messages.xliff', $content);
         $result = $this->extractor->extract($tempFile);
 
-        $this->assertInstanceOf(TranslationExtraction::class, $result);
         $this->assertCount(1, $result->messages);
         $this->assertSame('Hello {name}', $result->messages['app.greeting']);
     }

@@ -232,6 +232,9 @@ final class LintCommandTest extends FilesystemTestCase
 
         // Change to temp directory and run without args
         $originalCwd = getcwd();
+        if (false === $originalCwd) {
+            $this->fail('Unable to resolve current working directory.');
+        }
         chdir($tempDir);
 
         try {

@@ -141,7 +141,7 @@ final class HelpCommandTest extends TestCase
         $this->assertStringContainsString('test', $content);
         // Count lines that start with 'test' to avoid counting 'test' in descriptions
         $lines = explode("\n", $content);
-        $testLines = array_filter($lines, fn ($line) => preg_match('/^\s*test\s/', (string) $line));
+        $testLines = array_filter($lines, fn ($line): bool => 1 === preg_match('/^\s*test\s/', (string) $line));
         $this->assertCount(1, $testLines, 'Command should only appear once');
     }
 

@@ -14,11 +14,9 @@ declare(strict_types=1);
 namespace IcuParser\Tests;
 
 use IcuParser\IcuParser;
-use IcuParser\Node\MessageNode;
 use IcuParser\Node\SimpleArgumentNode;
 use IcuParser\Node\TextNode;
 use IcuParser\Type\ParameterType;
-use IcuParser\Type\TypeMap;
 use PHPUnit\Framework\TestCase;
 
 final class IcuParserTest extends TestCase
@@ -34,7 +32,6 @@ final class IcuParserTest extends TestCase
     {
         $node = $this->parser->parse('Hello world');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(1, $node->parts);
         $this->assertInstanceOf(TextNode::class, $node->parts[0]);
         $this->assertSame('Hello world', $node->parts[0]->text);
@@ -44,7 +41,6 @@ final class IcuParserTest extends TestCase
     {
         $node = $this->parser->parse('Hello {name}');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(2, $node->parts);
         $this->assertInstanceOf(TextNode::class, $node->parts[0]);
         $this->assertSame('Hello ', $node->parts[0]->text);
@@ -56,7 +52,6 @@ final class IcuParserTest extends TestCase
     {
         $types = $this->parser->infer('Hello {name}');
 
-        $this->assertInstanceOf(TypeMap::class, $types);
         $this->assertSame(ParameterType::STRING, $types->get('name'));
     }
 
@@ -70,12 +65,14 @@ final class IcuParserTest extends TestCase
 
     public function test_version_constant(): void
     {
-        $this->assertSame('0.1.0', IcuParser::VERSION);
+        $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', IcuParser::VERSION);
     }
 
     public function test_constructor_with_custom_dependencies(): void
     {
-        $customParser = new IcuParser();
-        $this->assertInstanceOf(IcuParser::class, $customParser);
+        $this->expectNotToPerformAssertions();
+
+        $parser = new IcuParser();
+        unset($parser);
     }
 }

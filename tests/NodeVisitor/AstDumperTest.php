@@ -31,64 +31,71 @@ final class AstDumperTest extends TestCase
 
     public function test_dumps_simple_message(): void
     {
-        $node = $this->parser->parse('Hello world');
-        $dump = $this->dumper->dump($node);
+        $dump = $this->dumpMessage('Hello world');
 
         $this->assertSame('Message', $dump['type']);
         $this->assertCount(1, $dump['parts']);
-        $this->assertSame('Text', $dump['parts'][0]['type']);
-        $this->assertSame('Hello world', $dump['parts'][0]['text']);
+        /** @var array{type: string, text: string} $part */
+        $part = $dump['parts'][0];
+        $this->assertSame('Text', $part['type']);
+        $this->assertSame('Hello world', $part['text']);
     }
 
     public function test_dumps_simple_argument(): void
     {
-        $node = $this->parser->parse('Hello {name}');
-        $dump = $this->dumper->dump($node);
+        $dump = $this->dumpMessage('Hello {name}');
 
         $this->assertSame('Message', $dump['type']);
         $this->assertCount(2, $dump['parts']);
-        $this->assertSame('Text', $dump['parts'][0]['type']);
-        $this->assertSame('Hello ', $dump['parts'][0]['text']);
-        $this->assertSame('Argument', $dump['parts'][1]['type']);
-        $this->assertSame('name', $dump['parts'][1]['name']);
-        $this->assertNull($dump['parts'][1]['format']);
+        /** @var array{type: string, text: string} $textPart */
+        $textPart = $dump['parts'][0];
+        $this->assertSame('Text', $textPart['type']);
+        $this->assertSame('Hello ', $textPart['text']);
+        /** @var array{type: string, name: string, format: string|null} $argumentPart */
+        $argumentPart = $dump['parts'][1];
+        $this->assertSame('Argument', $argumentPart['type']);
+        $this->assertSame('name', $argumentPart['name']);
+        $this->assertNull($argumentPart['format']);
     }
 
     public function test_dumps_formatted_argument(): void
     {
-        $node = $this->parser->parse('Count: {count, number}');
-        $dump = $this->dumper->dump($node);
+        $dump = $this->dumpMessage('Count: {count, number}');
 
         $this->assertSame('Message', $dump['type']);
         $this->assertCount(2, $dump['parts']);
-        $this->assertSame('Argument', $dump['parts'][1]['type']);
-        $this->assertSame('count', $dump['parts'][1]['name']);
-        $this->assertSame('number', $dump['parts'][1]['format']);
-        $this->assertNull($dump['parts'][1]['style']);
+        /** @var array{type: string, name: string, format: string|null, style: string|null} $argumentPart */
+        $argumentPart = $dump['parts'][1];
+        $this->assertSame('Argument', $argumentPart['type']);
+        $this->assertSame('count', $argumentPart['name']);
+        $this->assertSame('number', $argumentPart['format']);
+        $this->assertNull($argumentPart['style']);
     }
 
     public function test_dumps_plural(): void
     {
-        $node = $this->parser->parse('{count, plural, one {# item} other {# items}}');
-        $dump = $this->dumper->dump($node);
+        $dump = $this->dumpMessage('{count, plural, one {# item} other {# items}}');
 
         $this->assertSame('Message', $dump['type']);
+        /** @var array{type: string, name: string, offset: int|null, options: list<array<string, mixed>>} $pluralDump */
         $pluralDump = $dump['parts'][0];
         $this->assertSame('Plural', $pluralDump['type']);
         $this->assertSame('count', $pluralDump['name']);
         $this->assertNull($pluralDump['offset']);
         $this->assertCount(2, $pluralDump['options']);
-        $this->assertSame('Option', $pluralDump['options'][0]['type']);
-        $this->assertSame('one', $pluralDump['options'][0]['selector']);
-        $this->assertFalse($pluralDump['options'][0]['explicit']);
+        /** @var array{type: string, selector: string, explicit: bool} $optionDump */
+        $optionDump = $pluralDump['options'][0];
+        $this->assertSame('Option', $optionDump['type']);
+        $this->assertSame('one', $optionDump['selector']);
+        $this->assertFalse($optionDump['explicit']);
     }
 
     public function test_dumps_select(): void
     {
-        $node = $this->parser->parse('{gender, select, male {Mr.} female {Ms.}}');
-        $dump = $this->dumper->dump($node);
+        $dump = $this->dumpMessage('{gender, select, male {Mr.} female {Ms.}}');
 
         $this->assertSame('Message', $dump['type']);
+        /** @var array{type: string, name: string, options: list<array<string, mixed>>} $selectDump */
         $selectDump = $dump['parts'][0];
         $this->assertSame('Select', $selectDump['type']);
         $this->assertSame('gender', $selectDump['name']);
@@ -97,16 +104,35 @@ final class AstDumperTest extends TestCase
 
     public function test_dumps_pound(): void
     {
-        $node = $this->parser->parse('{count, plural, one {# item} other {# items}}');
-        $dump = $this->dumper->dump($node);
+        $dump = $this->dumpMessage('{count, plural, one {# item} other {# items}}');
 
         // Find the pound in the options
+        /** @var array{options: list<array<string, mixed>>} $pluralDump */
         $pluralDump = $dump['parts'][0];
-        $optionDump = $pluralDump['options'][0]['message'];
-        $this->assertSame('Message', $optionDump['type']);
-        $this->assertCount(2, $optionDump['parts']);
-        $this->assertSame('Pound', $optionDump['parts'][0]['type']);
-        $this->assertSame('Text', $optionDump['parts'][1]['type']);
-        $this->assertSame(' item', $optionDump['parts'][1]['text']);
+        /** @var array{message: array<string, mixed>} $optionDump */
+        $optionDump = $pluralDump['options'][0];
+        /** @var array{type: string, parts: list<array<string, mixed>>} $optionMessage */
+        $optionMessage = $optionDump['message'];
+        $this->assertSame('Message', $optionMessage['type']);
+        $this->assertCount(2, $optionMessage['parts']);
+        /** @var array{type: string} $poundPart */
+        $poundPart = $optionMessage['parts'][0];
+        $this->assertSame('Pound', $poundPart['type']);
+        /** @var array{type: string, text: string} $textPart */
+        $textPart = $optionMessage['parts'][1];
+        $this->assertSame('Text', $textPart['type']);
+        $this->assertSame(' item', $textPart['text']);
+    }
+
+    /**
+     * @return array{type: string, parts: list<array<string, mixed>>}
+     */
+    private function dumpMessage(string $message): array
+    {
+        $node = $this->parser->parse($message);
+        /** @var array{type: string, parts: list<array<string, mixed>>} $dump */
+        $dump = $this->dumper->dump($node);
+
+        return $dump;
     }
 }

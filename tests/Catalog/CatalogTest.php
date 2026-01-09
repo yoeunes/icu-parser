@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace IcuParser\Tests\Catalog;
 
+use IcuParser\Catalog\Cache\CatalogCacheInterface;
 use IcuParser\Catalog\Catalog;
 use IcuParser\Catalog\CatalogEntry;
-use IcuParser\Loader\TranslationLoader;
+use IcuParser\Loader\TranslationExtractorInterface;
 use IcuParser\Tests\Support\FilesystemTestCase;
 
 final class CatalogTest extends FilesystemTestCase
@@ -26,15 +27,17 @@ final class CatalogTest extends FilesystemTestCase
     {
         parent::setUp();
         $this->catalog = new Catalog(
-            new TranslationLoader([$this->createTempDir()], 'en'),
+            ['en' => ['messages' => ['dummy']]],
             new DummyExtractor(),
             new DummyCache(),
+            'test',
+            'en',
         );
     }
 
     public function test_get_message_with_id_and_default_locale_and_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -51,7 +54,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_message_with_custom_locale_uses_default_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -69,7 +72,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_message_with_default_locale_uses_custom_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -87,7 +90,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_message_with_id_and_custom_locale_uses_custom_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'custom' => [
                 'messages' => [
                     'app.hello' => [
@@ -105,7 +108,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_entry_with_id_and_default_locale_and_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -118,15 +121,16 @@ final class CatalogTest extends FilesystemTestCase
         ]);
 
         $entry = $this->catalog->getEntry('app.hello', 'en', 'messages');
+        $this->assertInstanceOf(CatalogEntry::class, $entry);
         $this->assertSame('app.hello', $entry->id);
         $this->assertSame('Hello World', $entry->message);
-        $this->assertSame(2, $entry->line);
+        $this->assertSame(5, $entry->line);
         $this->assertStringContainsString('test.yaml', $entry->file);
     }
 
     public function test_get_entry_with_id_and_custom_locale_uses_default_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -139,15 +143,16 @@ final class CatalogTest extends FilesystemTestCase
         ]);
 
         $entry = $this->catalog->getEntry('app.hello', 'en', 'messages');
+        $this->assertInstanceOf(CatalogEntry::class, $entry);
         $this->assertSame('app.hello', $entry->id);
         $this->assertSame('Hello World', $entry->message);
-        $this->assertSame(2, $entry->line);
+        $this->assertSame(5, $entry->line);
         $this->assertStringContainsString('test.yaml', $entry->file);
     }
 
     public function test_get_entry_with_id_and_custom_locale_uses_custom_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'custom' => [
                 'messages' => [
                     'app.hello' => [
@@ -160,9 +165,10 @@ final class CatalogTest extends FilesystemTestCase
         ]);
 
         $entry = $this->catalog->getEntry('app.hello', 'custom', 'messages');
+        $this->assertInstanceOf(CatalogEntry::class, $entry);
         $this->assertSame('app.hello', $entry->id);
         $this->assertSame('Hello World', $entry->message);
-        $this->assertSame(2, $entry->line);
+        $this->assertSame(5, $entry->line);
         $this->assertStringContainsString('test.yaml', $entry->file);
     }
 
@@ -171,14 +177,14 @@ final class CatalogTest extends FilesystemTestCase
         $this->assertFalse($this->catalog->has('nonexistent'));
     }
 
-    public function test_has_with_null_id_returns_false(): void
+    public function test_has_with_empty_id_returns_false(): void
     {
-        $this->assertFalse($this->catalog->has(null));
+        $this->assertFalse($this->catalog->has(''));
     }
 
     public function test_has_with_null_locale_fallbacks_to_default(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -195,7 +201,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_has_with_null_domain_fallbacks_to_default(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -207,12 +213,12 @@ final class CatalogTest extends FilesystemTestCase
             ],
         ]);
 
-        $this->assertTrue($this->catalog->has('app.hello', 'en', 'messages'));
+        $this->assertTrue($this->catalog->has('app.hello', 'en', null));
     }
 
     public function test_get_locales_returns_single_locale(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -231,7 +237,15 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_locales_returns_multiple_locales(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $catalog = new Catalog(
+            ['en' => ['messages' => ['dummy']], 'fr' => ['messages' => ['dummy']]],
+            new DummyExtractor(),
+            new DummyCache(),
+            'test',
+            'en',
+        );
+
+        $this->setCatalogData($catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -252,7 +266,7 @@ final class CatalogTest extends FilesystemTestCase
             ],
         ]);
 
-        $locales = $this->catalog->getLocales();
+        $locales = $catalog->getLocales();
         $this->assertCount(2, $locales);
         $this->assertContains('en', $locales);
         $this->assertContains('fr', $locales);
@@ -260,7 +274,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_domains_returns_single_domain(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -279,7 +293,15 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_domains_returns_multiple_domains(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $catalog = new Catalog(
+            ['en' => ['messages' => ['dummy'], 'admin' => ['dummy']]],
+            new DummyExtractor(),
+            new DummyCache(),
+            'test',
+            'en',
+        );
+
+        $this->setCatalogData($catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -288,17 +310,17 @@ final class CatalogTest extends FilesystemTestCase
                         'line' => 5,
                     ],
                 ],
-            ],
-            'admin' => [
                 'admin' => [
-                    'message' => 'Admin Only',
-                    'file' => 'admin.yaml',
-                    'line' => 10,
+                    'admin.message' => [
+                        'message' => 'Admin Only',
+                        'file' => 'admin.yaml',
+                        'line' => 10,
+                    ],
                 ],
             ],
         ]);
 
-        $domains = $this->catalog->getDomains('en');
+        $domains = $catalog->getDomains('en');
         $this->assertCount(2, $domains);
         $this->assertContains('messages', $domains);
         $this->assertContains('admin', $domains);
@@ -306,7 +328,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_entries_returns_single_entry(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -325,7 +347,7 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_get_entries_returns_multiple_entries(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -333,24 +355,32 @@ final class CatalogTest extends FilesystemTestCase
                         'file' => 'test.yaml',
                         'line' => 5,
                     ],
-                ],
-                'app.goodbye' => [
-                    'message' => 'Goodbye',
-                    'file' => 'test.yaml',
-                    'line' => 15,
+                    'app.goodbye' => [
+                        'message' => 'Goodbye',
+                        'file' => 'test.yaml',
+                        'line' => 15,
+                    ],
                 ],
             ],
         ]);
 
         $entries = $this->catalog->getEntries('en', 'messages');
         $this->assertCount(2, $entries);
-        $this->assertSame('app.hello', $entries['app.hello']->id);
-        $this->assertSame('app.goodbye', $entries['app.goodbye']->id);
+        $this->assertArrayHasKey('app.hello', $entries);
+        $this->assertArrayHasKey('app.goodbye', $entries);
     }
 
     public function test_get_entries_with_different_locales_returns_filtered_entries(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $catalog = new Catalog(
+            ['en' => ['messages' => ['dummy']], 'fr' => ['messages' => ['dummy']]],
+            new DummyExtractor(),
+            new DummyCache(),
+            'test',
+            'en',
+        );
+
+        $this->setCatalogData($catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -361,26 +391,28 @@ final class CatalogTest extends FilesystemTestCase
                 ],
             ],
             'fr' => [
-                'app.hello' => [
-                    'message' => 'Bonjour',
-                    'file' => 'test.yaml',
-                    'line' => 5,
+                'messages' => [
+                    'app.hello' => [
+                        'message' => 'Bonjour',
+                        'file' => 'test.yaml',
+                        'line' => 5,
+                    ],
                 ],
             ],
         ]);
 
-        $enEntries = $this->catalog->getEntries('en', 'messages');
-        $frEntries = $this->catalog->getEntries('fr', 'messages');
+        $enEntries = $catalog->getEntries('en', 'messages');
+        $frEntries = $catalog->getEntries('fr', 'messages');
 
         $this->assertCount(1, $enEntries);
         $this->assertSame('app.hello', $enEntries['app.hello']->id);
         $this->assertCount(1, $frEntries);
-        $this->assertSame('Bonjour', $frEntries['app.hello']->id);
+        $this->assertSame('Bonjour', $frEntries['app.hello']->message);
     }
 
     public function test_get_entries_with_nonexistent_locale_returns_empty(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -398,14 +430,25 @@ final class CatalogTest extends FilesystemTestCase
 
     public function test_resolve_locale_with_valid_locale(): void
     {
-        $this->assertSame('en', $this->catalog->resolveLocale('en'));
-        $this->assertSame('custom', $this->catalog->resolveLocale('custom'));
-        $this->assertSame('default', $this->catalog->resolveLocale(null));
+        $reflection = new \ReflectionClass($this->catalog);
+        $method = $reflection->getMethod('resolveLocale');
+
+        $this->assertSame('en', $method->invoke($this->catalog, 'en'));
+        $this->assertSame('custom', $method->invoke($this->catalog, 'custom'));
+        $this->assertSame('en', $method->invoke($this->catalog, null));
     }
 
     public function test_resolve_locale_with_valid_locale_and_custom_fallback(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $catalog = new Catalog(
+            ['custom' => ['messages' => ['dummy']], 'en' => ['messages' => ['dummy']]],
+            new DummyExtractor(),
+            new DummyCache(),
+            'test',
+            'en',
+        );
+
+        $this->setCatalogData($catalog, [
             'custom' => [
                 'messages' => [
                     'app.hello' => [
@@ -417,20 +460,27 @@ final class CatalogTest extends FilesystemTestCase
             ],
         ]);
 
-        $this->assertSame('custom', $this->catalog->resolveLocale('custom'));
-        $this->assertSame('en', $this->catalog->resolveLocale('en'));
+        $this->assertSame('custom', $this->callPrivateMethod($catalog, 'resolveLocale', 'custom'));
+        $this->assertSame('en', $this->callPrivateMethod($catalog, 'resolveLocale', 'en'));
     }
 
     public function test_resolve_locale_with_empty_locale_uses_default(): void
     {
-        $this->assertSame('en', $this->catalog->resolveLocale(''));
-        $this->assertSame('default', $this->catalog->resolveLocale(null));
-        $this->assertSame('en', $this->catalog->resolveLocale(null));
+        $this->assertSame('en', $this->callPrivateMethod($this->catalog, 'resolveLocale', ''));
+        $this->assertSame('en', $this->callPrivateMethod($this->catalog, 'resolveLocale', null));
     }
 
     public function test_resolve_locale_with_null_locale_uses_custom_fallback(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $catalog = new Catalog(
+            ['custom' => ['messages' => ['dummy']]],
+            new DummyExtractor(),
+            new DummyCache(),
+            'test',
+            'custom',
+        );
+
+        $this->setCatalogData($catalog, [
             'custom' => [
                 'messages' => [
                     'app.hello' => [
@@ -442,24 +492,24 @@ final class CatalogTest extends FilesystemTestCase
             ],
         ]);
 
-        $this->assertSame('custom', $this->catalog->resolveLocale('custom'));
-        $this->assertSame('en', $this->catalog->resolveLocale('en'));
+        $this->assertSame('custom', $this->callPrivateMethod($catalog, 'resolveLocale', 'custom'));
+        $this->assertSame('custom', $this->callPrivateMethod($catalog, 'resolveLocale', null));
     }
 
     public function test_resolve_domain_with_valid_domain(): void
     {
-        $this->assertSame('custom', $this->catalog->resolveDomain('custom'));
-        $this->assertSame('default', $this->catalog->resolveDomain(null));
+        $this->assertSame('custom', $this->callPrivateMethod($this->catalog, 'resolveDomain', 'custom'));
+        $this->assertSame('messages', $this->callPrivateMethod($this->catalog, 'resolveDomain', null));
     }
 
     public function test_resolve_domain_with_empty_domain_uses_default(): void
     {
-        $this->assertSame('messages', $this->catalog->resolveDomain(null));
+        $this->assertSame('messages', $this->callPrivateMethod($this->catalog, 'resolveDomain', null));
     }
 
     public function test_resolve_domain_with_empty_domain_uses_custom(): void
     {
-        $this->catalog->setCatalogData($this->catalog, [
+        $this->setCatalogData($this->catalog, [
             'custom' => [
                 'messages' => [
                     'app.hello' => [
@@ -471,90 +521,89 @@ final class CatalogTest extends FilesystemTestCase
             ],
         ]);
 
-        $this->assertSame('custom', $this->catalog->resolveDomain('custom'));
-        $this->assertSame('default', $this->catalog->resolveDomain(null));
+        $this->assertSame('custom', $this->callPrivateMethod($this->catalog, 'resolveDomain', 'custom'));
+        $this->assertSame('messages', $this->callPrivateMethod($this->catalog, 'resolveDomain', null));
     }
 
     public function test_ensure_loaded_is_called_when_cache_miss(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $catalog = new Catalog(
-            new TranslationLoader([$this->createTempDir()], 'en'),
+            [],
             $this->createMock(TranslationExtractorInterface::class),
             $this->createMock(CatalogCacheInterface::class),
+            'test',
         );
 
-        $catalog->ensureLoaded('en', 'messages');
+        $this->callPrivateMethod($catalog, 'ensureLoaded', 'en', 'messages');
     }
 
     public function test_ensure_loaded_is_not_called_when_cache_hit(): void
     {
+        $cache = $this->createMock(CatalogCacheInterface::class);
         $catalog = new Catalog(
-            new TranslationLoader([$this->createTempDir()], 'en'),
+            [],
             $this->createMock(TranslationExtractorInterface::class),
-            $this->createMock(CatalogCacheInterface::class),
+            $cache,
+            'test',
         );
 
-        $catalog->ensureLoaded('en', 'messages');
-
         // Cache hit
-        $this->mockCache->expects($this->once())
+        $cache->expects($this->once())
             ->method('getLocaleMessages')
-            ->willReturn(null);
-        $catalog->ensureLoaded('en', 'messages');
-
-        $this->assertSame(1, $this->mockCache->getMethodCalls('getLocaleMessages'));
+            ->willReturn(['app.hello' => ['message' => 'Hello', 'file' => 'test', 'line' => 1]]);
+        $this->callPrivateMethod($catalog, 'ensureLoaded', 'en', 'messages');
     }
 
     public function test_ensure_loaded_with_null_cache_data(): void
     {
+        $cache = $this->createMock(CatalogCacheInterface::class);
         $catalog = new Catalog(
-            new TranslationLoader([$this->createTempDir()], 'en'),
+            [],
             $this->createMock(TranslationExtractorInterface::class),
-            $this->createMock(CatalogCacheInterface::class),
+            $cache,
+            'test',
         );
 
-        $catalog->ensureLoaded('en', 'messages');
-
-        // Cache returns empty array
-        $this->mockCache->expects($this->once())
+        // Cache returns data
+        $cache->expects($this->once())
             ->method('getLocaleMessages')
-            ->willReturn(['app.hello' => ['message' => 'Hello World']]);
-        $catalog->ensureLoaded('en', 'messages');
+            ->willReturn(['app.hello' => ['message' => 'Hello World', 'file' => 'test', 'line' => 1]]);
+        $this->callPrivateMethod($catalog, 'ensureLoaded', 'en', 'messages');
 
-        // No cache call made
-        $this->assertSame(1, $this->mockCache->getMethodCalls('getLocaleMessages'));
+        $this->assertSame('Hello World', $catalog->getMessage('app.hello', 'en', 'messages'));
     }
 
     public function test_ensure_loaded_with_cache_exception(): void
     {
+        $cache = $this->createMock(CatalogCacheInterface::class);
         $catalog = new Catalog(
-            new TranslationLoader([$this->createTempDir()], 'en'),
+            [],
             $this->createMock(TranslationExtractorInterface::class),
-            $this->createMock(CatalogCacheInterface::class),
+            $cache,
+            'test',
         );
 
-        $catalog->ensureLoaded('en', 'messages');
-
-        // Cache throws exception
-        $this->mockCache->expects($this->once())
+        $cache->expects($this->once())
             ->method('getLocaleMessages')
             ->willThrowException(new \Exception('Cache error'));
 
         $this->expectException(\Exception::class);
-        $catalog->ensureLoaded('en', 'messages');
-
-        $this->assertSame(1, $this->mockCache->getMethodCalls('getLocaleMessages'));
+        $this->callPrivateMethod($catalog, 'ensureLoaded', 'en', 'messages');
     }
 
     public function test_hydrate_entries_filters_by_locale_and_domain(): void
     {
         $catalog = new Catalog(
-            new TranslationLoader([$this->createTempDir()], 'en'),
-            $this->createMock(TranslationExtractorInterface::class),
-            $this->createMock(CatalogCacheInterface::class),
+            ['en' => ['messages' => ['dummy'], 'admin' => ['dummy']], 'fr' => ['messages' => ['dummy']]],
+            new DummyExtractor(),
+            new DummyCache(),
+            'test',
+            'en',
         );
 
-        $catalog->setCatalogData($catalog, [
+        $this->setCatalogData($catalog, [
             'en' => [
                 'messages' => [
                     'app.hello' => [
@@ -563,50 +612,72 @@ final class CatalogTest extends FilesystemTestCase
                         'line' => 5,
                     ],
                 ],
-                'app.goodbye' => [
-                    'message' => 'Goodbye',
-                    'file' => 'test.yaml',
-                    'line' => 15,
+                'admin' => [
+                    'app.admin' => [
+                        'message' => 'Admin Only',
+                        'file' => 'admin.yaml',
+                        'line' => 8,
+                    ],
                 ],
             ],
             'fr' => [
-                'app.hello' => [
-                    'message' => 'Bonjour',
-                    'file' => 'test.yaml',
-                    'line' => 5,
+                'messages' => [
+                    'app.hello' => [
+                        'message' => 'Bonjour',
+                        'file' => 'test.yaml',
+                        'line' => 6,
+                    ],
                 ],
             ],
         ]);
 
-        $this->assertSame(['app.hello'], $catalog->getEntries('en', 'messages'));
-        $this->assertSame(['app.goodbye'], $catalog->getEntries('fr', 'messages'));
-        $this->assertSame(['app.hello'], $catalog->getEntries('en', 'messages'));
-        $this->assertSame(['app.hello'], $catalog->getEntries('fr', 'messages'));
+        $this->assertSame(['app.hello'], array_keys($catalog->getEntries('en', 'messages')));
+        $this->assertSame(['app.admin'], array_keys($catalog->getEntries('en', 'admin')));
+        $this->assertSame(['app.hello'], array_keys($catalog->getEntries('fr', 'messages')));
     }
 
-    private function setCatalogData(Catalog $catalog, array $data): void
-    {
-        foreach ($data as $locale => $localeData) {
-            foreach ($localeData as $domain => $domainData) {
-                foreach ($domainData as $id => $entryData) {
-                    $catalog->messages[$locale][$domain][$id] = new CatalogEntry(
-                        $id,
-                        $entryData['message'],
-                        $entryData['file'],
-                        $entryData['line'],
-                    );
-                }
-            }
-        }
-    }
-
-    private function createTempDir(): string
+    protected function createTempDir(): string
     {
         return sys_get_temp_dir().'/icu_parser_test_'.uniqid().'/translations';
     }
 
-    private function createMock(string $class): object
+    /**
+     * @param array<string, array<string, array<string, array{message: string, file: string, line: int}>>> $data
+     */
+    private function setCatalogData(Catalog $catalog, array $data): void
     {
-        return $this->createMock($class);
+        $reflection = new \ReflectionClass($catalog);
+        $messagesProperty = $reflection->getProperty('messages');
+        $loadedProperty = $reflection->getProperty('loaded');
+
+        /** @var array<string, array<string, array<string, CatalogEntry>>> $messages */
+        $messages = $messagesProperty->getValue($catalog);
+        /** @var array<string, array<string, bool>> $loaded */
+        $loaded = $loadedProperty->getValue($catalog);
+
+        foreach ($data as $locale => $localeData) {
+            foreach ($localeData as $domain => $domainData) {
+                foreach ($domainData as $id => $entryData) {
+                    $messages[$locale][$domain][$id] = new CatalogEntry(
+                        $id,
+                        (string) $entryData['message'],
+                        (string) $entryData['file'],
+                        (int) $entryData['line'],
+                    );
+                }
+                $loaded[$locale][$domain] = true;
+            }
+        }
+
+        $messagesProperty->setValue($catalog, $messages);
+        $loadedProperty->setValue($catalog, $loaded);
+    }
+
+    private function callPrivateMethod(Catalog $catalog, string $methodName, mixed ...$args): mixed
+    {
+        $reflection = new \ReflectionClass($catalog);
+        $method = $reflection->getMethod($methodName);
+
+        return $method->invoke($catalog, ...$args);
     }
 }

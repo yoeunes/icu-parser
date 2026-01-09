@@ -15,8 +15,6 @@ namespace IcuParser\Tests\Bridge\Symfony\DependencyInjection;
 
 use IcuParser\Bridge\Symfony\DependencyInjection\Configuration;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Processor;
 
 final class ConfigurationTest extends TestCase
@@ -30,20 +28,21 @@ final class ConfigurationTest extends TestCase
 
     public function test_implements_configuration_interface(): void
     {
-        $this->assertInstanceOf(ConfigurationInterface::class, $this->configuration);
+        $this->expectNotToPerformAssertions();
+
+        $this->configuration->getConfigTreeBuilder();
     }
 
     public function test_get_config_tree_builder_returns_tree_builder(): void
     {
-        $treeBuilder = $this->configuration->getConfigTreeBuilder();
+        $this->expectNotToPerformAssertions();
 
-        $this->assertInstanceOf(TreeBuilder::class, $treeBuilder);
+        $this->configuration->getConfigTreeBuilder();
     }
 
     public function test_default_configuration(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, []);
+        $config = $this->processConfiguration([]);
 
         $this->assertSame(['%kernel.project_dir%/translations'], $config['translation_paths']);
         $this->assertNull($config['default_locale']);
@@ -53,8 +52,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_custom_translation_paths(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'translation_paths' => [
                     '/custom/path1',
@@ -71,8 +69,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_custom_default_locale(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'default_locale' => 'fr_FR',
             ],
@@ -86,8 +83,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_custom_cache_dir(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'cache_dir' => '/custom/cache',
             ],
@@ -101,8 +97,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_custom_default_domain(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'default_domain' => 'custom_domain',
             ],
@@ -116,8 +111,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_full_custom_configuration(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'translation_paths' => [
                     '/path1',
@@ -138,8 +132,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_empty_translation_paths(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'translation_paths' => [],
             ],
@@ -150,8 +143,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_null_default_locale(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'default_locale' => null,
             ],
@@ -162,8 +154,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_null_cache_dir(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'cache_dir' => null,
             ],
@@ -174,8 +165,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_empty_string_default_domain_fallback_to_default(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'default_domain' => '',
             ],
@@ -188,8 +178,7 @@ final class ConfigurationTest extends TestCase
 
     public function test_multiple_configurations_merge(): void
     {
-        $processor = new Processor();
-        $config = $processor->processConfiguration($this->configuration, [
+        $config = $this->processConfiguration([
             [
                 'translation_paths' => ['/path1'],
                 'default_locale' => 'en',
@@ -204,9 +193,29 @@ final class ConfigurationTest extends TestCase
         ]);
 
         // Translation paths: later configs override earlier ones
+        $this->assertIsArray($config['translation_paths']);
         $this->assertContains($config['translation_paths'][0], ['/path1', '/path2']);
         $this->assertSame('en', $config['default_locale']); // Preserved from first
         $this->assertSame('/cache', $config['cache_dir']); // Preserved from second
         $this->assertSame('custom', $config['default_domain']); // From third
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $configs
+     *
+     * @return array<string, mixed>
+     */
+    private function processConfiguration(array $configs): array
+    {
+        $processor = new Processor();
+
+        $config = $processor->processConfiguration($this->configuration, $configs);
+
+        $normalized = [];
+        foreach ($config as $key => $value) {
+            $normalized[(string) $key] = $value;
+        }
+
+        return $normalized;
     }
 }

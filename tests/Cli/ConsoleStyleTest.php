@@ -61,9 +61,9 @@ final class ConsoleStyleTest extends TestCase
     {
         ob_start();
         $this->style->renderSection('Section Title');
-        $output = ob_get_clean();
+        $output = (string) ob_get_clean();
 
-        $this->assertStringContainsString('Section Title', (string) $output);
+        $this->assertStringContainsString('Section Title', $output);
         $this->assertStringStartsWith('  ', $output);
     }
 

@@ -17,11 +17,12 @@ use IcuParser\Cli\Application;
 use IcuParser\Cli\Command\CommandInterface;
 use IcuParser\Cli\GlobalOptionsParser;
 use IcuParser\Cli\Output;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class ApplicationTest extends TestCase
 {
-    private CommandInterface $helpCommand;
+    private CommandInterface&MockObject $helpCommand;
 
     private Application $app;
 
@@ -76,6 +77,7 @@ final class ApplicationTest extends TestCase
 
     public function test_run_with_valid_command(): void
     {
+        /** @var CommandInterface&MockObject $command */
         $command = $this->createMock(CommandInterface::class);
         $command->method('getName')->willReturn('test');
         $command->method('getAliases')->willReturn([]);

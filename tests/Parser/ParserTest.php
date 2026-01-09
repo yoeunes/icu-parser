@@ -15,7 +15,6 @@ namespace IcuParser\Tests\Parser;
 
 use IcuParser\Exception\ParserException;
 use IcuParser\Node\FormattedArgumentNode;
-use IcuParser\Node\MessageNode;
 use IcuParser\Node\PluralNode;
 use IcuParser\Node\SelectNode;
 use IcuParser\Node\SimpleArgumentNode;
@@ -36,7 +35,6 @@ final class ParserTest extends TestCase
     {
         $node = $this->parser->parse('Hello world');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(1, $node->parts);
         $this->assertInstanceOf(TextNode::class, $node->parts[0]);
         $this->assertSame('Hello world', $node->parts[0]->text);
@@ -46,7 +44,6 @@ final class ParserTest extends TestCase
     {
         $node = $this->parser->parse('Hello {name}');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(2, $node->parts);
         $this->assertInstanceOf(TextNode::class, $node->parts[0]);
         $this->assertSame('Hello ', $node->parts[0]->text);
@@ -58,7 +55,6 @@ final class ParserTest extends TestCase
     {
         $node = $this->parser->parse('Count: {count, number}');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(2, $node->parts);
         $this->assertInstanceOf(TextNode::class, $node->parts[0]);
         $this->assertSame('Count: ', $node->parts[0]->text);
@@ -71,7 +67,6 @@ final class ParserTest extends TestCase
     {
         $node = $this->parser->parse('{count, plural, one {# item} other {# items}}');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(1, $node->parts);
         $this->assertInstanceOf(PluralNode::class, $node->parts[0]);
         $this->assertSame('count', $node->parts[0]->name);
@@ -82,7 +77,6 @@ final class ParserTest extends TestCase
     {
         $node = $this->parser->parse('{gender, select, male {Mr.} female {Ms.} other {}}');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(1, $node->parts);
         $this->assertInstanceOf(SelectNode::class, $node->parts[0]);
         $this->assertSame('gender', $node->parts[0]->name);
@@ -93,7 +87,6 @@ final class ParserTest extends TestCase
     {
         $node = $this->parser->parse('Hello {name}, you have {count, plural, one {# item} other {# items}} in your cart.');
 
-        $this->assertInstanceOf(MessageNode::class, $node);
         $this->assertCount(5, $node->parts);
         $this->assertInstanceOf(TextNode::class, $node->parts[0]);
         $this->assertSame('Hello ', $node->parts[0]->text);
