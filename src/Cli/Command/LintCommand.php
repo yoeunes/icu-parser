@@ -19,6 +19,7 @@ use IcuParser\Cli\Output;
 use IcuParser\Exception\IcuParserException;
 use IcuParser\Parser\Parser;
 use IcuParser\Runtime\IcuRuntimeInfo;
+use IcuParser\Validation\SemanticValidator;
 
 final class LintCommand implements CommandInterface
 {
@@ -68,6 +69,7 @@ final class LintCommand implements CommandInterface
         }
 
         $parser = new Parser();
+        $validator = new SemanticValidator();
         $issues = 0;
         $checked = 0;
 
@@ -76,7 +78,7 @@ final class LintCommand implements CommandInterface
             foreach ($messages as $message) {
                 $checked++;
                 try {
-                    $parser->parse($message['value']);
+                    $ast = $parser->parse($message['value']);
                 } catch (IcuParserException $exception) {
                     $issues++;
                     $location = $file;
@@ -86,6 +88,22 @@ final class LintCommand implements CommandInterface
                     $output->write($output->error('Error').': '.$location.' - '.$exception->getMessage()."\n");
                     $snippet = $exception->getSnippet();
                     if (null !== $snippet && '' !== $snippet) {
+                        $output->write($snippet."\n");
+                    }
+
+                    continue;
+                }
+
+                $validation = $validator->validate($ast, $message['value']);
+                foreach ($validation->getErrors() as $error) {
+                    $issues++;
+                    $location = $file;
+                    if (null !== $message['line']) {
+                        $location .= ':'.$message['line'];
+                    }
+                    $output->write($output->error('Semantic error').': '.$location.' - '.$error->getMessage()."\n");
+                    $snippet = $error->getSnippet();
+                    if ('' !== $snippet) {
                         $output->write($snippet."\n");
                     }
                 }
