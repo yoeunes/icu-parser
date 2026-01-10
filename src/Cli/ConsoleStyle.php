@@ -66,16 +66,12 @@ final readonly class ConsoleStyle
 
         $this->output->write(self::INDENT.$this->output->color($label, Output::CYAN.Output::BOLD)."\n");
 
+        $this->output->write(self::PATTERN_INDENT.$this->output->color(self::ARROW, Output::CYAN.Output::BOLD)."\n");
+
         // Handle multiline patterns - preserve original indentation
         $lines = explode("\n", $pattern);
-        foreach ($lines as $index => $line) {
-            if (0 === $index) {
-                // First line with arrow
-                $this->output->write(self::PATTERN_INDENT.$this->output->color(self::ARROW.' ', Output::CYAN.Output::BOLD).$line."\n");
-            } else {
-                // Continuation lines - preserve original indentation, just add PATTERN_INDENT
-                $this->output->write(self::PATTERN_INDENT.$line."\n");
-            }
+        foreach ($lines as $line) {
+            $this->output->write(self::PATTERN_INDENT.$line."\n");
         }
     }
 

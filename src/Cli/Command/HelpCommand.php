@@ -175,7 +175,7 @@ final class HelpCommand implements CommandInterface
                 ],
                 'notes' => [
                     'Pretty-prints the ICU message with indentation and selector alignment.',
-                    'Applies syntax highlighting for better readability.',
+                    'Applies syntax highlighting to the formatted output.',
                     'Outputs the formatted message only.',
                 ],
                 'examples' => [

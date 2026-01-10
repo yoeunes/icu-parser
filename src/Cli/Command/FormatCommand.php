@@ -18,6 +18,7 @@ use IcuParser\Cli\Input;
 use IcuParser\Cli\Output;
 use IcuParser\Exception\IcuParserException;
 use IcuParser\Formatter\FormatOptions;
+use IcuParser\Formatter\PrettyFormatter;
 use IcuParser\IcuParser;
 use IcuParser\NodeVisitor\ConsoleHighlighterVisitor;
 use IcuParser\Runtime\IcuRuntimeInfo;
@@ -78,22 +79,19 @@ final class FormatCommand implements CommandInterface
 
         try {
             $parser = new IcuParser();
+            $formatter = new PrettyFormatter();
 
-            // First, format the message
             $options = new FormatOptions(
                 indent: str_repeat(' ', $indentSize),
                 lineBreak: "\n",
                 alignSelectors: $alignSelectors,
             );
-            $formatted = $parser->format($message, $options);
-
-            // Then, parse the formatted message and highlight it
-            $ast = $parser->parse($formatted);
-            $visitor = new ConsoleHighlighterVisitor($output->isAnsi());
-            $highlighted = $ast->accept($visitor);
+            $ast = $parser->parse($message);
+            $styler = new ConsoleHighlighterVisitor($output->isAnsi());
+            $formatted = $formatter->formatStyled($ast, $styler, $options);
 
             if ($style->visualsEnabled()) {
-                $style->renderPattern($highlighted);
+                $style->renderPattern($formatted);
             } else {
                 $output->write($formatted."\n");
             }

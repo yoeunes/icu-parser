@@ -32,7 +32,7 @@ use IcuParser\Node\TextNode;
  *
  * @implements NodeVisitorInterface<string>
  */
-abstract class HighlighterVisitor implements NodeVisitorInterface
+abstract class HighlighterVisitor implements NodeVisitorInterface, TokenStylerInterface
 {
     public function visitMessage(MessageNode $node): string
     {
@@ -235,4 +235,14 @@ abstract class HighlighterVisitor implements NodeVisitorInterface
      * Escapes special characters for the output format.
      */
     abstract protected function escape(string $string): string;
+
+    final public function style(string $content, string $type): string
+    {
+        return $this->wrap($content, $type);
+    }
+
+    final public function escapeToken(string $string): string
+    {
+        return $this->escape($string);
+    }
 }
