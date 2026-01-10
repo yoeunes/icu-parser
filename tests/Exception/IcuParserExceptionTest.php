@@ -36,7 +36,7 @@ final class IcuParserExceptionTest extends TestCase
             42,
             'snippet',
             'ERROR_CODE',
-            $previous
+            $previous,
         );
 
         $this->assertSame('Test message', $exception->getMessage());
@@ -52,7 +52,7 @@ final class IcuParserExceptionTest extends TestCase
             'Message',
             10,
             'code snippet',
-            'PARSE_ERROR'
+            'PARSE_ERROR',
         );
 
         $this->assertSame(10, $exception->getPosition());

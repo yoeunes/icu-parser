@@ -41,4 +41,23 @@ final class IcuRuntimeInfoTest extends TestCase
 
         $this->assertSame($expected, $info->jsonSerialize());
     }
+
+    public function test_detect_when_intl_extension_not_loaded(): void
+    {
+        // This test would simulate when intl extension is not loaded
+        // Since we can't easily unload extensions in tests, we'll test the logic indirectly
+        $info = IcuRuntimeInfo::detect();
+
+        // The method should handle the case gracefully
+        $this->assertIsString($info->intlVersion);
+        $this->assertIsString($info->icuVersion);
+
+        // When intl is loaded, it should return the version number
+        // When intl is not loaded, it should return 'missing' or 'unknown'
+        if (extension_loaded('intl')) {
+            $this->assertMatchesRegularExpression('/^\d+\.\d+/', $info->intlVersion);
+        } else {
+            $this->assertContains($info->intlVersion, ['missing', 'unknown']);
+        }
+    }
 }

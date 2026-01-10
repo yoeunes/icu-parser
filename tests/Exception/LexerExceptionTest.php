@@ -35,7 +35,7 @@ final class LexerExceptionTest extends TestCase
             'Lex error',
             42,
             'invalid token',
-            $previous
+            $previous,
         );
 
         $this->assertSame('Lex error', $exception->getMessage());

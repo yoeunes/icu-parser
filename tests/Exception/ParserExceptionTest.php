@@ -35,7 +35,7 @@ final class ParserExceptionTest extends TestCase
             'Parse error',
             42,
             'invalid syntax',
-            $previous
+            $previous,
         );
 
         $this->assertSame('Parse error', $exception->getMessage());
