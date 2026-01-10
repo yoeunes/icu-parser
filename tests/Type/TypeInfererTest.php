@@ -71,6 +71,38 @@ final class TypeInfererTest extends TestCase
         $this->assertSame(ParameterType::NUMBER, $types->get('count'));
     }
 
+    public function test_infers_number_for_choice(): void
+    {
+        $node = $this->parser->parse('{value, choice, 0#none|1#one}');
+        $types = $this->inferer->infer($node);
+
+        $this->assertSame(ParameterType::NUMBER, $types->get('value'));
+    }
+
+    public function test_infers_number_for_spellout(): void
+    {
+        $node = $this->parser->parse('{count, spellout}');
+        $types = $this->inferer->infer($node);
+
+        $this->assertSame(ParameterType::NUMBER, $types->get('count'));
+    }
+
+    public function test_infers_number_for_ordinal(): void
+    {
+        $node = $this->parser->parse('{rank, ordinal}');
+        $types = $this->inferer->infer($node);
+
+        $this->assertSame(ParameterType::NUMBER, $types->get('rank'));
+    }
+
+    public function test_infers_number_for_duration(): void
+    {
+        $node = $this->parser->parse('{duration, duration}');
+        $types = $this->inferer->infer($node);
+
+        $this->assertSame(ParameterType::NUMBER, $types->get('duration'));
+    }
+
     public function test_maps_unknown_format_to_string(): void
     {
         $node = $this->parser->parse('{value, unknown}');

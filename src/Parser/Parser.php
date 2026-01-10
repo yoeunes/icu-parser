@@ -18,6 +18,8 @@ use IcuParser\Lexer\Lexer;
 use IcuParser\Lexer\Token;
 use IcuParser\Lexer\TokenStream;
 use IcuParser\Lexer\TokenType;
+use IcuParser\Node\ChoiceNode;
+use IcuParser\Node\ChoiceOptionNode;
 use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
@@ -68,7 +70,10 @@ final class Parser
         return $node;
     }
 
-    private function parseMessage(): MessageNode
+    /**
+     * @param array<int, TokenType> $terminators
+     */
+    private function parseMessage(array $terminators = []): MessageNode
     {
         /** @var list<NodeInterface> $parts */
         $parts = [];
@@ -82,7 +87,7 @@ final class Parser
         while (!$this->tokens->isAtEnd()) {
             $token = $this->current();
 
-            if (TokenType::T_RBRACE === $token->type) {
+            if (TokenType::T_RBRACE === $token->type || \in_array($token->type, $terminators, true)) {
                 break;
             }
 
@@ -115,13 +120,20 @@ final class Parser
         return new MessageNode($parts, $start, $end);
     }
 
-    private function parseArgument(): SimpleArgumentNode|FormattedArgumentNode|SelectNode|PluralNode|SelectOrdinalNode|SpelloutNode|OrdinalNode|DurationNode
+    private function parseArgument(): SimpleArgumentNode|FormattedArgumentNode|SelectNode|PluralNode|SelectOrdinalNode|SpelloutNode|OrdinalNode|DurationNode|ChoiceNode
     {
         $startToken = $this->expect(TokenType::T_LBRACE, 'Expected "{" to start an argument.');
         $start = $startToken->position;
 
         $this->skipWhitespace();
-        $nameToken = $this->expect(TokenType::T_IDENTIFIER, 'Expected argument name.');
+        $nameToken = $this->current();
+        if (!\in_array($nameToken->type, [TokenType::T_IDENTIFIER, TokenType::T_NUMBER], true)) {
+            throw ParserException::withContext('Expected argument name.', $nameToken->position, $this->message);
+        }
+        if (TokenType::T_NUMBER === $nameToken->type && str_starts_with($nameToken->value, '-')) {
+            throw ParserException::withContext('Argument name cannot be negative.', $nameToken->position, $this->message);
+        }
+        $this->advance();
         $name = $nameToken->value;
         $this->skipWhitespace();
 
@@ -139,6 +151,10 @@ final class Parser
 
         $endToken = $this->match(TokenType::T_RBRACE);
         if (null !== $endToken) {
+            if (\in_array($type, ['select', 'plural', 'selectordinal', 'choice'], true)) {
+                throw ParserException::withContext(sprintf('Expected options for "%s" argument.', $type), $endToken->position, $this->message);
+            }
+
             // Handle format types that require specific node classes, even without style
             return match ($type) {
                 'spellout' => new SpelloutNode($name, $type, null, $start, $endToken->getEndPosition()),
@@ -151,8 +167,11 @@ final class Parser
         $this->expect(TokenType::T_COMMA, 'Expected "," before argument style.');
         $this->skipWhitespace();
 
-        if (\in_array($type, ['select', 'plural', 'selectordinal'], true)) {
-            return $this->parseComplexArgument($name, $type, $start);
+        if (\in_array($type, ['select', 'plural', 'selectordinal', 'choice'], true)) {
+            return match ($type) {
+                'choice' => $this->parseChoiceArgument($name, $start),
+                default => $this->parseComplexArgument($name, $type, $start),
+            };
         }
 
         $style = $this->collectStyleUntil(TokenType::T_RBRACE);
@@ -165,6 +184,72 @@ final class Parser
             'duration' => new DurationNode($name, $type, $style, $start, $endToken->getEndPosition()),
             default => new FormattedArgumentNode($name, $type, $style, $start, $endToken->getEndPosition()),
         };
+    }
+
+    private function parseChoiceArgument(string $name, int $start): ChoiceNode
+    {
+        $options = [];
+
+        // Choice format: {name, choice, 0#none|1#one}
+        // Options are NOT wrapped in outer braces like select/plural
+        $this->skipWhitespace();
+
+        if ($this->check(TokenType::T_RBRACE)) {
+            throw ParserException::withContext('Choice argument must have at least one option.', $this->current()->position, $this->message);
+        }
+
+        while (!$this->tokens->isAtEnd() && !$this->check(TokenType::T_RBRACE)) {
+            $option = $this->parseChoiceOption();
+            $options[] = $option;
+
+            $this->skipWhitespace();
+            if ($this->check(TokenType::T_PIPE)) {
+                $this->advance();
+                $this->skipWhitespace();
+            }
+        }
+
+        $endToken = $this->expect(TokenType::T_RBRACE, 'Expected "}" to close choice argument.');
+
+        return new ChoiceNode($name, $options, $start, $endToken->getEndPosition());
+    }
+
+    private function parseChoiceOption(): ChoiceOptionNode
+    {
+        $startToken = $this->current();
+
+        // Parse limit
+        $limitToken = $this->expect(TokenType::T_NUMBER, 'Expected numeric limit for choice option.');
+        $limit = (float) $limitToken->value;
+
+        // Parse operator
+        $this->skipWhitespace();
+        $operatorToken = $this->current();
+        $isExclusive = null;
+
+        if (TokenType::T_HASH === $operatorToken->type) {
+            $isExclusive = false;
+            $this->advance();
+        } elseif (TokenType::T_LT === $operatorToken->type) {
+            $isExclusive = true;
+            $this->advance();
+        }
+
+        if (null === $isExclusive) {
+            throw ParserException::withContext('Expected "#" or "<" after choice limit.', $operatorToken->position, $this->message);
+        }
+
+        // Parse message
+        $this->skipWhitespace();
+        $message = $this->parseMessage([TokenType::T_PIPE]);
+
+        return new ChoiceOptionNode(
+            $limit,
+            $isExclusive,
+            $message,
+            $startToken->position,
+            $message->getEndPosition(),
+        );
     }
 
     private function parseComplexArgument(string $name, string $type, int $start): SelectNode|PluralNode|SelectOrdinalNode

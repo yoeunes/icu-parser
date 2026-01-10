@@ -21,6 +21,8 @@ enum TokenType: string
     case T_COLON = 'colon';
     case T_HASH = 'hash';
     case T_EQUAL = 'equal';
+    case T_PIPE = 'pipe';
+    case T_LT = 'lt';
     case T_IDENTIFIER = 'identifier';
     case T_NUMBER = 'number';
     case T_TEXT = 'text';

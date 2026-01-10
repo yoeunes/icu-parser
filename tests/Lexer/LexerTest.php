@@ -164,6 +164,22 @@ final class LexerTest extends TestCase
         $this->assertContains(TokenType::T_HASH, $types);
     }
 
+    public function test_tokenizes_choice_tokens(): void
+    {
+        $stream = $this->lexer->tokenize('0#none|1<one');
+
+        $tokens = $stream->getTokens();
+
+        $this->assertSame(TokenType::T_NUMBER, $tokens[0]->type);
+        $this->assertSame(TokenType::T_HASH, $tokens[1]->type);
+        $this->assertSame(TokenType::T_IDENTIFIER, $tokens[2]->type);
+        $this->assertSame(TokenType::T_PIPE, $tokens[3]->type);
+        $this->assertSame(TokenType::T_NUMBER, $tokens[4]->type);
+        $this->assertSame(TokenType::T_LT, $tokens[5]->type);
+        $this->assertSame(TokenType::T_IDENTIFIER, $tokens[6]->type);
+        $this->assertSame(TokenType::T_EOF, $tokens[7]->type);
+    }
+
     public function test_throws_on_invalid_utf8(): void
     {
         $this->expectException(LexerException::class);

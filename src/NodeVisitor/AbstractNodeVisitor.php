@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace IcuParser\NodeVisitor;
 
+use IcuParser\Node\ChoiceNode;
 use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
@@ -79,4 +80,11 @@ abstract class AbstractNodeVisitor implements NodeVisitorInterface
     public function visitOrdinal(OrdinalNode $node): void {}
 
     public function visitDuration(DurationNode $node): void {}
+
+    public function visitChoice(ChoiceNode $node): void
+    {
+        foreach ($node->options as $option) {
+            $option->message->accept($this);
+        }
+    }
 }

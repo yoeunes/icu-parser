@@ -22,7 +22,8 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.2",
-        "ext-intl": "*"
+        "ext-intl": "*",
+        "symfony/intl": "^7.4"
     },
     "autoload": {
         "psr-4": {

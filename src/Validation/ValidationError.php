@@ -20,7 +20,7 @@ final class ValidationError implements \JsonSerializable
     use VisualContextTrait;
 
     public function __construct(
-        private readonly string $description,
+        public readonly string $message,
         public readonly ?int $position,
         ?string $source = null,
         public readonly ?string $errorCode = null,
@@ -30,7 +30,7 @@ final class ValidationError implements \JsonSerializable
 
     public function getMessage(): string
     {
-        return $this->description;
+        return $this->message;
     }
 
     public function getSnippet(): string
@@ -49,7 +49,7 @@ final class ValidationError implements \JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'message' => $this->description,
+            'message' => $this->message,
             'position' => $this->position,
             'snippet' => $this->getVisualSnippet(),
             'code' => $this->errorCode,

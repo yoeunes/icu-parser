@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace IcuParser\NodeVisitor;
 
+use IcuParser\Node\ChoiceNode;
 use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
@@ -92,4 +93,9 @@ interface NodeVisitorInterface
      * @return TReturn
      */
     public function visitDuration(DurationNode $node);
+
+    /**
+     * @return TReturn
+     */
+    public function visitChoice(ChoiceNode $node);
 }

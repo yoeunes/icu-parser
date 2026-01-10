@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace IcuParser\NodeVisitor;
 
+use IcuParser\Node\ChoiceNode;
 use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
@@ -172,6 +173,23 @@ final class AstDumper implements NodeVisitorInterface
             'name' => $node->name,
             'format' => $node->format,
             'style' => $node->style,
+            'start' => $node->startPosition,
+            'end' => $node->endPosition,
+        ];
+    }
+
+    public function visitChoice(ChoiceNode $node): array
+    {
+        return [
+            'type' => 'Choice',
+            'name' => $node->name,
+            'options' => array_map(fn ($option) => [
+                'limit' => $option->limit,
+                'isExclusive' => $option->isExclusive,
+                'message' => $option->message->accept($this),
+                'start' => $option->startPosition,
+                'end' => $option->endPosition,
+            ], $node->options),
             'start' => $node->startPosition,
             'end' => $node->endPosition,
         ];

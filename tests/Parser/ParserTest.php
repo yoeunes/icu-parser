@@ -60,6 +60,23 @@ final class ParserTest extends TestCase
         $this->assertSame('name', $node->parts[1]->name);
     }
 
+    public function test_parses_numeric_argument_name(): void
+    {
+        $node = $this->parser->parse('Value {0}');
+
+        $this->assertCount(2, $node->parts);
+        $this->assertInstanceOf(SimpleArgumentNode::class, $node->parts[1]);
+        $this->assertSame('0', $node->parts[1]->name);
+    }
+
+    public function test_rejects_negative_argument_name(): void
+    {
+        $this->expectException(ParserException::class);
+        $this->expectExceptionMessage('Argument name cannot be negative.');
+
+        $this->parser->parse('Value {-1}');
+    }
+
     public function test_parses_formatted_argument(): void
     {
         $node = $this->parser->parse('Count: {count, number}');

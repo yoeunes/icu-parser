@@ -124,6 +124,21 @@ final class AstDumperTest extends TestCase
         $this->assertSame(' item', $textPart['text']);
     }
 
+    public function test_dumps_choice(): void
+    {
+        $dump = $this->dumpMessage('{value, choice, 0#none|1<one}');
+
+        $this->assertSame('Message', $dump['type']);
+        /** @var array{type: string, name: string, options: list<array<string, mixed>>} $choiceDump */
+        $choiceDump = $dump['parts'][0];
+        $this->assertSame('Choice', $choiceDump['type']);
+        $this->assertSame('value', $choiceDump['name']);
+        $this->assertCount(2, $choiceDump['options']);
+        $this->assertEqualsWithDelta(0.0, $choiceDump['options'][0]['limit'], \PHP_FLOAT_EPSILON);
+        $this->assertFalse($choiceDump['options'][0]['isExclusive']);
+        $this->assertTrue($choiceDump['options'][1]['isExclusive']);
+    }
+
     /**
      * @return array{type: string, parts: list<array<string, mixed>>}
      */

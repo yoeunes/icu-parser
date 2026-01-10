@@ -27,6 +27,8 @@ final class Lexer
         ':' => TokenType::T_COLON,
         '#' => TokenType::T_HASH,
         '=' => TokenType::T_EQUAL,
+        '|' => TokenType::T_PIPE,
+        '<' => TokenType::T_LT,
     ];
 
     private const QUOTE_SPECIALS = [
@@ -34,6 +36,8 @@ final class Lexer
         '}' => true,
         '#' => true,
         '\'' => true,
+        '|' => true,
+        '<' => true,
     ];
 
     public function tokenize(string $message): TokenStream

@@ -20,9 +20,19 @@ final class ValidationResult implements \JsonSerializable
      */
     private array $errors = [];
 
+    /**
+     * @var array<int, ValidationError>
+     */
+    private array $warnings = [];
+
     public function addError(ValidationError $error): void
     {
         $this->errors[] = $error;
+    }
+
+    public function addWarning(ValidationError $warning): void
+    {
+        $this->warnings[] = $warning;
     }
 
     /**
@@ -33,9 +43,22 @@ final class ValidationResult implements \JsonSerializable
         return $this->errors;
     }
 
+    /**
+     * @return array<int, ValidationError>
+     */
+    public function getWarnings(): array
+    {
+        return $this->warnings;
+    }
+
     public function hasErrors(): bool
     {
         return [] !== $this->errors;
+    }
+
+    public function hasWarnings(): bool
+    {
+        return [] !== $this->warnings;
     }
 
     public function count(): int
@@ -47,6 +70,10 @@ final class ValidationResult implements \JsonSerializable
     {
         foreach ($other->errors as $error) {
             $this->errors[] = $error;
+        }
+
+        foreach ($other->warnings as $warning) {
+            $this->warnings[] = $warning;
         }
     }
 
