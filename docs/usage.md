@@ -30,12 +30,32 @@ if ($result->hasErrors()) {
 }
 ```
 
+### Reformat a message
+
+```php
+$pretty = $parser->format('{gender, select, male {He} other {They}}');
+```
+
+### Highlight a message
+
+```php
+use IcuParser\Highlight\HighlightTheme;
+
+$highlighted = $parser->highlight('{count, number}', HighlightTheme::ansi());
+```
+
 ### CLI
 
 The CLI is useful for linting translation catalogs.
 
 ```
 bin/icu lint translations/
+```
+
+Highlight a message directly:
+
+```
+bin/icu highlight '{count, plural, one {# item} other {# items}}'
 ```
 
 Use `bin/icu help` to see available commands.

@@ -7,6 +7,8 @@ This project provides a parser and validator for ICU MessageFormat strings in PH
 - Parse MessageFormat strings into an AST.
 - Provide visitors for inspection, type inference, and semantic validation.
 - Validate common pattern mistakes in number/date/time styles.
+- Reformat ICU messages for readability and consistency.
+- Highlight ICU syntax for inspection.
 - Support plural/select/selectordinal/choice constructs, including `#` handling.
 
 ### Non-goals (for now)

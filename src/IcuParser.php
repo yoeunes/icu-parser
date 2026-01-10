@@ -14,6 +14,10 @@ declare(strict_types=1);
 namespace IcuParser;
 
 use IcuParser\Exception\IcuParserException;
+use IcuParser\Formatter\FormatOptions;
+use IcuParser\Formatter\PrettyFormatter;
+use IcuParser\Highlight\Highlighter;
+use IcuParser\Highlight\HighlightTheme;
 use IcuParser\Node\MessageNode;
 use IcuParser\Parser\Parser;
 use IcuParser\Type\TypeInferer;
@@ -29,6 +33,8 @@ final readonly class IcuParser
     public function __construct(
         private Parser $parser = new Parser(),
         private TypeInferer $typeInferer = new TypeInferer(),
+        private Highlighter $highlighter = new Highlighter(),
+        private PrettyFormatter $formatter = new PrettyFormatter(),
     ) {}
 
     /**
@@ -47,5 +53,23 @@ final readonly class IcuParser
         $ast = $this->parse($message);
 
         return $this->typeInferer->infer($ast);
+    }
+
+    /**
+     * @throws IcuParserException
+     */
+    public function highlight(string $message, ?HighlightTheme $theme = null): string
+    {
+        return $this->highlighter->highlight($message, $theme);
+    }
+
+    /**
+     * @throws IcuParserException
+     */
+    public function format(string $message, ?FormatOptions $options = null): string
+    {
+        $ast = $this->parse($message);
+
+        return $this->formatter->format($ast, $options);
     }
 }

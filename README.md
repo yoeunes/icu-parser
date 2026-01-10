@@ -8,7 +8,9 @@ ICU MessageFormat parser and validator for PHP. This library focuses on fast par
 - Visitors (AST dumper, type inference, semantic validation).
 - Plural/select/selectordinal/choice support with `#` handling.
 - Basic number/date/time pattern validation for common mistakes.
-- CLI helpers for linting and auditing translation catalogs.
+- Pretty formatter for normalizing ICU messages for readability.
+- Syntax highlighting for ICU message strings.
+- CLI helpers for linting, auditing, and highlighting translation catalogs.
 
 ## Installation
 
@@ -48,13 +50,28 @@ $validator = new SemanticValidator();
 $result = $validator->validate($ast, 'Hello {name}', 'en');
 ```
 
+Reformat a message for readability:
+
+```php
+$pretty = $parser->format('{gender, select, male {He} other {They}}');
+```
+
+Highlight a message:
+
+```php
+use IcuParser\Highlight\HighlightTheme;
+
+$highlighted = $parser->highlight('{count, number}', HighlightTheme::ansi());
+```
+
 ## Documentation
 
 - `docs/overview.md`
 - `docs/usage.md`
 - `docs/icu-support.md`
+- `docs/formatting.md`
 
 ## Notes
 
-- This library does not format messages at runtime. For formatting, use `MessageFormatter` from `ext-intl`.
+- This library does not format messages at runtime. It only reformats ICU strings for readability. For runtime formatting, use `MessageFormatter` from `ext-intl`.
 - Pattern validation is intentionally conservative and may not catch every ICU edge case.

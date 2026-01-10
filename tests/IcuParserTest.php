@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace IcuParser\Tests;
 
+use IcuParser\Highlight\HighlightTheme;
 use IcuParser\IcuParser;
 use IcuParser\Node\SimpleArgumentNode;
 use IcuParser\Node\TextNode;
@@ -74,5 +75,28 @@ final class IcuParserTest extends TestCase
 
         $parser = new IcuParser();
         unset($parser);
+    }
+
+    public function test_highlight_with_plain_theme(): void
+    {
+        $message = 'Hello {name}';
+
+        $highlighted = $this->parser->highlight($message, HighlightTheme::plain());
+
+        $this->assertSame($message, $highlighted);
+    }
+
+    public function test_format_pretty_prints_message(): void
+    {
+        $message = '{gender, select, male {He} other {They}}';
+
+        $formatted = $this->parser->format($message);
+
+        $expected = "{gender, select,\n"
+            ."    male  {He}\n"
+            ."    other {They}\n"
+            .'}';
+
+        $this->assertSame($expected, $formatted);
     }
 }

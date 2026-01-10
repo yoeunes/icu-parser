@@ -45,6 +45,7 @@ use IcuParser\Cli\Application;
 use IcuParser\Cli\Command\AuditCommand;
 use IcuParser\Cli\Command\DebugCommand;
 use IcuParser\Cli\Command\HelpCommand;
+use IcuParser\Cli\Command\HighlightCommand;
 use IcuParser\Cli\Command\LintCommand;
 use IcuParser\Cli\GlobalOptionsParser;
 use IcuParser\Cli\Output;
@@ -58,12 +59,14 @@ $app->register($helpCommand);
 
 $debugCommand = new DebugCommand();
 $auditCommand = new AuditCommand();
+$highlightCommand = new HighlightCommand();
 $lintCommand = new LintCommand();
 
 $app->register($debugCommand);
 $app->register($auditCommand);
+$app->register($highlightCommand);
 $app->register($lintCommand);
 
-$helpCommand->setCommands([$helpCommand, $debugCommand, $auditCommand, $lintCommand]);
+$helpCommand->setCommands([$helpCommand, $debugCommand, $auditCommand, $highlightCommand, $lintCommand]);
 
 exit($app->run($argv));
