@@ -90,11 +90,7 @@ final class FormatCommand implements CommandInterface
             $styler = new ConsoleHighlighterVisitor($output->isAnsi());
             $formatted = $formatter->formatStyled($ast, $styler, $options);
 
-            if ($style->visualsEnabled()) {
-                $style->renderPattern($formatted);
-            } else {
-                $output->write($formatted."\n");
-            }
+            $output->write($formatted."\n");
         } catch (IcuParserException $exception) {
             $output->write('  '.$output->badge('FAIL', Output::WHITE, Output::BG_RED).' '.$output->error("Error: {$exception->getMessage()}")."\n");
 
