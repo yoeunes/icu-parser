@@ -13,14 +13,17 @@ declare(strict_types=1);
 
 namespace IcuParser\NodeVisitor;
 
+use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
 use IcuParser\Node\OptionNode;
+use IcuParser\Node\OrdinalNode;
 use IcuParser\Node\PluralNode;
 use IcuParser\Node\PoundNode;
 use IcuParser\Node\SelectNode;
 use IcuParser\Node\SelectOrdinalNode;
 use IcuParser\Node\SimpleArgumentNode;
+use IcuParser\Node\SpelloutNode;
 use IcuParser\Node\TextNode;
 
 /**
@@ -74,4 +77,19 @@ interface NodeVisitorInterface
      * @return TReturn
      */
     public function visitPound(PoundNode $node);
+
+    /**
+     * @return TReturn
+     */
+    public function visitSpellout(SpelloutNode $node);
+
+    /**
+     * @return TReturn
+     */
+    public function visitOrdinal(OrdinalNode $node);
+
+    /**
+     * @return TReturn
+     */
+    public function visitDuration(DurationNode $node);
 }

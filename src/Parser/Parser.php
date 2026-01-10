@@ -18,15 +18,18 @@ use IcuParser\Lexer\Lexer;
 use IcuParser\Lexer\Token;
 use IcuParser\Lexer\TokenStream;
 use IcuParser\Lexer\TokenType;
+use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
 use IcuParser\Node\NodeInterface;
 use IcuParser\Node\OptionNode;
+use IcuParser\Node\OrdinalNode;
 use IcuParser\Node\PluralNode;
 use IcuParser\Node\PoundNode;
 use IcuParser\Node\SelectNode;
 use IcuParser\Node\SelectOrdinalNode;
 use IcuParser\Node\SimpleArgumentNode;
+use IcuParser\Node\SpelloutNode;
 use IcuParser\Node\TextNode;
 
 /**
@@ -112,7 +115,7 @@ final class Parser
         return new MessageNode($parts, $start, $end);
     }
 
-    private function parseArgument(): SimpleArgumentNode|FormattedArgumentNode|SelectNode|PluralNode|SelectOrdinalNode
+    private function parseArgument(): SimpleArgumentNode|FormattedArgumentNode|SelectNode|PluralNode|SelectOrdinalNode|SpelloutNode|OrdinalNode|DurationNode
     {
         $startToken = $this->expect(TokenType::T_LBRACE, 'Expected "{" to start an argument.');
         $start = $startToken->position;
@@ -136,7 +139,13 @@ final class Parser
 
         $endToken = $this->match(TokenType::T_RBRACE);
         if (null !== $endToken) {
-            return new FormattedArgumentNode($name, $type, null, $start, $endToken->getEndPosition());
+            // Handle format types that require specific node classes, even without style
+            return match ($type) {
+                'spellout' => new SpelloutNode($name, $type, null, $start, $endToken->getEndPosition()),
+                'ordinal' => new OrdinalNode($name, $type, null, $start, $endToken->getEndPosition()),
+                'duration' => new DurationNode($name, $type, null, $start, $endToken->getEndPosition()),
+                default => new FormattedArgumentNode($name, $type, null, $start, $endToken->getEndPosition()),
+            };
         }
 
         $this->expect(TokenType::T_COMMA, 'Expected "," before argument style.');
@@ -149,7 +158,13 @@ final class Parser
         $style = $this->collectStyleUntil(TokenType::T_RBRACE);
         $endToken = $this->expect(TokenType::T_RBRACE, 'Expected "}" to close argument.');
 
-        return new FormattedArgumentNode($name, $type, $style, $start, $endToken->getEndPosition());
+        // Handle specific format types with dedicated node classes
+        return match ($type) {
+            'spellout' => new SpelloutNode($name, $type, $style, $start, $endToken->getEndPosition()),
+            'ordinal' => new OrdinalNode($name, $type, $style, $start, $endToken->getEndPosition()),
+            'duration' => new DurationNode($name, $type, $style, $start, $endToken->getEndPosition()),
+            default => new FormattedArgumentNode($name, $type, $style, $start, $endToken->getEndPosition()),
+        };
     }
 
     private function parseComplexArgument(string $name, string $type, int $start): SelectNode|PluralNode|SelectOrdinalNode

@@ -13,14 +13,17 @@ declare(strict_types=1);
 
 namespace IcuParser\NodeVisitor;
 
+use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
 use IcuParser\Node\OptionNode;
+use IcuParser\Node\OrdinalNode;
 use IcuParser\Node\PluralNode;
 use IcuParser\Node\PoundNode;
 use IcuParser\Node\SelectNode;
 use IcuParser\Node\SelectOrdinalNode;
 use IcuParser\Node\SimpleArgumentNode;
+use IcuParser\Node\SpelloutNode;
 use IcuParser\Node\TextNode;
 
 /**
@@ -133,6 +136,42 @@ final class AstDumper implements NodeVisitorInterface
     {
         return [
             'type' => 'Pound',
+            'start' => $node->startPosition,
+            'end' => $node->endPosition,
+        ];
+    }
+
+    public function visitSpellout(SpelloutNode $node)
+    {
+        return [
+            'type' => 'Spellout',
+            'name' => $node->name,
+            'format' => $node->format,
+            'style' => $node->style,
+            'start' => $node->startPosition,
+            'end' => $node->endPosition,
+        ];
+    }
+
+    public function visitOrdinal(OrdinalNode $node)
+    {
+        return [
+            'type' => 'Ordinal',
+            'name' => $node->name,
+            'format' => $node->format,
+            'style' => $node->style,
+            'start' => $node->startPosition,
+            'end' => $node->endPosition,
+        ];
+    }
+
+    public function visitDuration(DurationNode $node)
+    {
+        return [
+            'type' => 'Duration',
+            'name' => $node->name,
+            'format' => $node->format,
+            'style' => $node->style,
             'start' => $node->startPosition,
             'end' => $node->endPosition,
         ];

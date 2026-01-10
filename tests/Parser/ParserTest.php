@@ -14,13 +14,17 @@ declare(strict_types=1);
 namespace IcuParser\Tests\Parser;
 
 use IcuParser\Exception\ParserException;
+use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
+use IcuParser\Node\OrdinalNode;
 use IcuParser\Node\PluralNode;
 use IcuParser\Node\PoundNode;
 use IcuParser\Node\SelectNode;
 use IcuParser\Node\SelectOrdinalNode;
 use IcuParser\Node\SimpleArgumentNode;
+use IcuParser\Node\SpelloutNode;
 use IcuParser\Node\TextNode;
+use IcuParser\NodeVisitor\AstDumper;
 use IcuParser\Parser\Parser;
 use PHPUnit\Framework\TestCase;
 
@@ -28,9 +32,12 @@ final class ParserTest extends TestCase
 {
     private Parser $parser;
 
+    private AstDumper $astDumper;
+
     protected function setUp(): void
     {
         $this->parser = new Parser();
+        $this->astDumper = new AstDumper();
     }
 
     public function test_parses_simple_message(): void
@@ -226,6 +233,63 @@ final class ParserTest extends TestCase
         $this->assertSame('HH:mm:ss', $node->parts[0]->style);
     }
 
+    public function test_parses_spellout_argument(): void
+    {
+        $node = $this->parser->parse('{count, spellout}');
+
+        $this->assertCount(1, $node->parts);
+        $this->assertInstanceOf(SpelloutNode::class, $node->parts[0]);
+        $this->assertSame('count', $node->parts[0]->name);
+        $this->assertSame('spellout', $node->parts[0]->format);
+        $this->assertNull($node->parts[0]->style);
+    }
+
+    public function test_parses_spellout_argument_with_style(): void
+    {
+        $node = $this->parser->parse('{count, spellout, %cardinal}');
+
+        $this->assertInstanceOf(SpelloutNode::class, $node->parts[0]);
+        $this->assertSame('%cardinal', $node->parts[0]->style);
+    }
+
+    public function test_parses_ordinal_argument(): void
+    {
+        $node = $this->parser->parse('{rank, ordinal}');
+
+        $this->assertCount(1, $node->parts);
+        $this->assertInstanceOf(OrdinalNode::class, $node->parts[0]);
+        $this->assertSame('rank', $node->parts[0]->name);
+        $this->assertSame('ordinal', $node->parts[0]->format);
+        $this->assertNull($node->parts[0]->style);
+    }
+
+    public function test_parses_ordinal_argument_with_style(): void
+    {
+        $node = $this->parser->parse('{rank, ordinal, %digits}');
+
+        $this->assertInstanceOf(OrdinalNode::class, $node->parts[0]);
+        $this->assertSame('%digits', $node->parts[0]->style);
+    }
+
+    public function test_parses_duration_argument(): void
+    {
+        $node = $this->parser->parse('{duration, duration}');
+
+        $this->assertCount(1, $node->parts);
+        $this->assertInstanceOf(DurationNode::class, $node->parts[0]);
+        $this->assertSame('duration', $node->parts[0]->name);
+        $this->assertSame('duration', $node->parts[0]->format);
+        $this->assertNull($node->parts[0]->style);
+    }
+
+    public function test_parses_duration_argument_with_style(): void
+    {
+        $node = $this->parser->parse('{duration, duration, h:mm:ss}');
+
+        $this->assertInstanceOf(DurationNode::class, $node->parts[0]);
+        $this->assertSame('h:mm:ss', $node->parts[0]->style);
+    }
+
     public function test_collect_style_until_throws_on_nested_brace(): void
     {
         $this->expectException(ParserException::class);
@@ -367,6 +431,45 @@ final class ParserTest extends TestCase
         $this->expectExceptionMessage('Expected "}" to close argument.');
 
         $this->parser->parse('{value, number, currency');
+    }
+
+    public function test_ast_dump_with_spellout_node(): void
+    {
+        $node = $this->parser->parse('{count, spellout}');
+
+        /** @var array{parts: list<array<string, mixed>>} $ast */
+        $ast = $node->accept($this->astDumper);
+
+        $this->assertSame('Spellout', $ast['parts'][0]['type']);
+        $this->assertSame('count', $ast['parts'][0]['name']);
+        $this->assertSame('spellout', $ast['parts'][0]['format']);
+        $this->assertNull($ast['parts'][0]['style']);
+    }
+
+    public function test_ast_dump_with_ordinal_node(): void
+    {
+        $node = $this->parser->parse('{rank, ordinal}');
+
+        /** @var array{parts: list<array<string, mixed>>} $ast */
+        $ast = $node->accept($this->astDumper);
+
+        $this->assertSame('Ordinal', $ast['parts'][0]['type']);
+        $this->assertSame('rank', $ast['parts'][0]['name']);
+        $this->assertSame('ordinal', $ast['parts'][0]['format']);
+        $this->assertNull($ast['parts'][0]['style']);
+    }
+
+    public function test_ast_dump_with_duration_node(): void
+    {
+        $node = $this->parser->parse('{duration, duration}');
+
+        /** @var array{parts: list<array<string, mixed>>} $ast */
+        $ast = $node->accept($this->astDumper);
+
+        $this->assertSame('Duration', $ast['parts'][0]['type']);
+        $this->assertSame('duration', $ast['parts'][0]['name']);
+        $this->assertSame('duration', $ast['parts'][0]['format']);
+        $this->assertNull($ast['parts'][0]['style']);
     }
 
     public function test_parse_valid_message_reaches_eof(): void

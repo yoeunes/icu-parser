@@ -13,14 +13,17 @@ declare(strict_types=1);
 
 namespace IcuParser\NodeVisitor;
 
+use IcuParser\Node\DurationNode;
 use IcuParser\Node\FormattedArgumentNode;
 use IcuParser\Node\MessageNode;
 use IcuParser\Node\OptionNode;
+use IcuParser\Node\OrdinalNode;
 use IcuParser\Node\PluralNode;
 use IcuParser\Node\PoundNode;
 use IcuParser\Node\SelectNode;
 use IcuParser\Node\SelectOrdinalNode;
 use IcuParser\Node\SimpleArgumentNode;
+use IcuParser\Node\SpelloutNode;
 use IcuParser\Node\TextNode;
 
 /**
@@ -70,4 +73,10 @@ abstract class AbstractNodeVisitor implements NodeVisitorInterface
     }
 
     public function visitPound(PoundNode $node): void {}
+
+    public function visitSpellout(SpelloutNode $node): void {}
+
+    public function visitOrdinal(OrdinalNode $node): void {}
+
+    public function visitDuration(DurationNode $node): void {}
 }

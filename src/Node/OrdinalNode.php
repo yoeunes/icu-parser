@@ -16,22 +16,12 @@ namespace IcuParser\Node;
 use IcuParser\NodeVisitor\NodeVisitorInterface;
 
 /**
- * Argument with a formatter type and optional style.
+ * Ordinal number format node.
  */
-readonly class FormattedArgumentNode extends ArgumentNode
+final readonly class OrdinalNode extends FormattedArgumentNode
 {
-    public function __construct(
-        string $name,
-        public string $format,
-        public ?string $style,
-        int $startPosition,
-        int $endPosition,
-    ) {
-        parent::__construct($name, $startPosition, $endPosition);
-    }
-
     public function accept(NodeVisitorInterface $visitor)
     {
-        return $visitor->visitFormattedArgument($this);
+        return $visitor->visitOrdinal($this);
     }
 }
