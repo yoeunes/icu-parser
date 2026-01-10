@@ -15,6 +15,7 @@ namespace IcuParser\Tests\Cldr;
 
 use IcuParser\Cldr\PluralRules;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Intl\Locales;
 
 final class PluralRulesTest extends TestCase
 {
@@ -107,18 +108,18 @@ final class PluralRulesTest extends TestCase
     {
         $categories = PluralRules::getCategories('fr', true);
 
-        if (class_exists(\Symfony\Component\Intl\Locales::class)) {
-            $this->assertSame(['one', 'other'], $categories);
-        } else {
-            $this->assertSame(['other'], $categories);
-        }
+        $this->assertSame(['one', 'other'], $categories);
     }
 
     public function test_defaults_to_english(): void
     {
         $categories = PluralRules::getCategories('unknown-locale');
 
-        $this->assertSame(['one', 'other'], $categories);
+        if (class_exists(Locales::class)) {
+            $this->assertSame(['one', 'other'], $categories);
+        } else {
+            $this->assertSame(['other'], $categories);
+        }
     }
 
     public function test_fractional_numbers(): void
