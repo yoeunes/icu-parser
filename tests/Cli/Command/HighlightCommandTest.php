@@ -46,7 +46,7 @@ final class HighlightCommandTest extends TestCase
     {
         $command = new HighlightCommand();
         $input = new Input('highlight', [], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -61,7 +61,7 @@ final class HighlightCommandTest extends TestCase
     {
         $command = new HighlightCommand();
         $input = new Input('highlight', ['Hello {name}'], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -74,8 +74,8 @@ final class HighlightCommandTest extends TestCase
     public function test_run_with_banner_enabled(): void
     {
         $command = new HighlightCommand();
-        $input = new Input('highlight', ['Hello {name}'], new GlobalOptions(false, false, true, false));
-        $output = new Output(false, false);
+        $input = new Input('highlight', ['Hello {name}'], new GlobalOptions(false, false, false, true));
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);

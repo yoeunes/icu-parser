@@ -18,11 +18,18 @@ use IcuParser\IcuParser;
 final readonly class ConsoleStyle
 {
     private const INDENT = '  ';
+    private const PATTERN_INDENT = '      ';
+    private const ARROW = "\xE2\x86\x92";
 
     public function __construct(
         private Output $output,
         private bool $visuals = true,
     ) {}
+
+    public function visualsEnabled(): bool
+    {
+        return $this->visuals;
+    }
 
     /**
      * @param array<string, string> $meta
@@ -38,13 +45,41 @@ final readonly class ConsoleStyle
         $this->output->write("\n");
     }
 
-    public function renderSection(string $title): void
+    public function renderSection(string $title, ?int $step = null, ?int $total = null): void
     {
         if (!$this->visuals) {
             return;
         }
 
-        $this->output->write(self::INDENT.$this->output->dim($title)."\n");
+        $prefix = $this->formatStepPrefix($step, $total);
+
+        $this->output->write(self::INDENT.$this->output->dim($prefix.$title)."\n");
+    }
+
+    public function renderPattern(string $pattern, string $label = 'Pattern'): void
+    {
+        if (!$this->visuals) {
+            $this->output->write(self::INDENT.$label.': '.$pattern."\n");
+
+            return;
+        }
+
+        $this->output->write(self::INDENT.$this->output->color($label, Output::CYAN.Output::BOLD)."\n");
+        $this->output->write(
+            self::PATTERN_INDENT
+            .$this->output->color(self::ARROW.' ', Output::CYAN.Output::BOLD)
+            .$pattern
+            ."\n",
+        );
+    }
+
+    private function formatStepPrefix(?int $step, ?int $total): string
+    {
+        if (null === $step || null === $total) {
+            return '';
+        }
+
+        return '['.$step.'/'.$total.'] ';
     }
 
     /**
@@ -60,14 +95,20 @@ final readonly class ConsoleStyle
         $prefix = str_repeat(' ', max(0, $indent));
 
         foreach ($rows as $label => $value) {
-            $this->output->write(
-                $prefix
+            $this->output->write($this->formatKeyValueLine($prefix, $maxLabelLength, $label, $value)."\n");
+        }
+    }
+
+    private function formatKeyValueLine(string $prefix, int $maxLabelLength, string $label, string $value): string
+    {
+        if ($this->visuals) {
+            return $prefix
                 .$this->output->dim(str_pad($label, $maxLabelLength))
                 .' : '
-                .$value
-                ."\n",
-            );
+                .$value;
         }
+
+        return $prefix.$label.': '.$value;
     }
 
     private function writeTitleBlock(?string $tagline): void

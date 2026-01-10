@@ -18,56 +18,67 @@ final class GlobalOptionsParser
     /**
      * @param array<int, string> $args
      */
-    public function parse(array $args): ParsedInput
+    public function parse(array $args): ParsedGlobalOptions
     {
-        $ansi = null;
         $quiet = false;
-        $banner = true;
+        $ansi = null;
         $help = false;
+        $visuals = true;
         $remaining = [];
 
-        foreach ($args as $arg) {
-            if ('--help' === $arg || '-h' === $arg) {
-                $help = true;
+        for ($i = 0; $i < \count($args); $i++) {
+            $arg = $args[$i];
 
-                continue;
-            }
-
-            if ('--ansi' === $arg) {
-                $ansi = true;
-
-                continue;
-            }
-
-            if ('--no-ansi' === $arg) {
-                $ansi = false;
-
-                continue;
-            }
-
-            if ('-q' === $arg || '--quiet' === $arg) {
+            if ($this->isQuietOption($arg)) {
                 $quiet = true;
 
                 continue;
             }
 
-            if ('--no-banner' === $arg) {
-                $banner = false;
+            if ($this->isAnsiOption($arg)) {
+                $ansi = '--ansi' === $arg;
 
                 continue;
             }
 
-            if (str_starts_with($arg, '-')) {
-                return new ParsedInput(
-                    new GlobalOptions($ansi, $quiet, $banner, $help),
-                    $remaining,
-                    sprintf('Unknown option: %s', $arg),
-                );
+            if ($this->isHelpOption($arg)) {
+                $help = true;
+
+                continue;
+            }
+
+            if ($this->isVisualsOption($arg)) {
+                $visuals = false;
+
+                continue;
             }
 
             $remaining[] = $arg;
         }
 
-        return new ParsedInput(new GlobalOptions($ansi, $quiet, $banner, $help), $remaining);
+        $options = new GlobalOptions($quiet, $ansi, $help, $visuals);
+
+        return new ParsedGlobalOptions($options, $remaining);
+    }
+
+    private function isQuietOption(string $arg): bool
+    {
+        return '-q' === $arg || '--quiet' === $arg || '--silent' === $arg;
+    }
+
+    private function isAnsiOption(string $arg): bool
+    {
+        return '--ansi' === $arg || '--no-ansi' === $arg;
+    }
+
+    private function isHelpOption(string $arg): bool
+    {
+        return '--help' === $arg || '-h' === $arg;
+    }
+
+    private function isVisualsOption(string $arg): bool
+    {
+        return '--no-visuals' === $arg || '--no-art' === $arg || '--no-splash' === $arg;
     }
 }
+

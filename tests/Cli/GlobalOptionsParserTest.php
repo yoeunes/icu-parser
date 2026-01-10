@@ -31,7 +31,7 @@ final class GlobalOptionsParserTest extends TestCase
 
         $this->assertNull($parsed->options->ansi);
         $this->assertFalse($parsed->options->quiet);
-        $this->assertTrue($parsed->options->banner);
+        $this->assertTrue($parsed->options->visuals);
         $this->assertFalse($parsed->options->help);
         $this->assertSame(['arg1', 'arg2'], $parsed->args);
         $this->assertNull($parsed->error);
@@ -69,11 +69,11 @@ final class GlobalOptionsParserTest extends TestCase
         $this->assertSame(['arg'], $parsed->args);
     }
 
-    public function test_parse_no_banner(): void
+    public function test_parse_no_visuals(): void
     {
-        $parsed = $this->parser->parse(['--no-banner', 'arg']);
+        $parsed = $this->parser->parse(['--no-visuals', 'arg']);
 
-        $this->assertFalse($parsed->options->banner);
+        $this->assertFalse($parsed->options->visuals);
         $this->assertSame(['arg'], $parsed->args);
     }
 
@@ -81,7 +81,7 @@ final class GlobalOptionsParserTest extends TestCase
     {
         $parsed = $this->parser->parse(['--unknown', 'arg']);
 
-        $this->assertStringContainsString('Unknown option: --unknown', (string) $parsed->error);
-        $this->assertSame([], $parsed->args);
+        // Unknown options are passed through as args (allows --version alias to work)
+        $this->assertSame(['--unknown', 'arg'], $parsed->args);
     }
 }

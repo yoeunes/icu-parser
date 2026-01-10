@@ -47,15 +47,22 @@ use IcuParser\Cli\Command\DebugCommand;
 use IcuParser\Cli\Command\HelpCommand;
 use IcuParser\Cli\Command\HighlightCommand;
 use IcuParser\Cli\Command\LintCommand;
+use IcuParser\Cli\Command\SelfUpdateCommand;
+use IcuParser\Cli\Command\VersionCommand;
 use IcuParser\Cli\GlobalOptionsParser;
 use IcuParser\Cli\Output;
+use IcuParser\Cli\SelfUpdate\SelfUpdater;
 
 $globalOptionsParser = new GlobalOptionsParser();
-$output = new Output(false, false);
+$progressBarFull = "\xE2\x96\x88";
+$progressBarEmpty = "\xE2\x96\x91";
+$output = new Output(false, false, $progressBarFull, $progressBarEmpty);
 $helpCommand = new HelpCommand();
 
 $app = new Application($globalOptionsParser, $output, $helpCommand);
 $app->register($helpCommand);
+$app->register(new VersionCommand());
+$app->register(new SelfUpdateCommand(new SelfUpdater()));
 
 $debugCommand = new DebugCommand();
 $auditCommand = new AuditCommand();
@@ -67,6 +74,6 @@ $app->register($auditCommand);
 $app->register($highlightCommand);
 $app->register($lintCommand);
 
-$helpCommand->setCommands([$helpCommand, $debugCommand, $auditCommand, $highlightCommand, $lintCommand]);
+$helpCommand->setCommands([$helpCommand, new VersionCommand(), new SelfUpdateCommand(new SelfUpdater()), $debugCommand, $auditCommand, $highlightCommand, $lintCommand]);
 
 exit($app->run($argv));

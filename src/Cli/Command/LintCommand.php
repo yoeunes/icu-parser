@@ -56,7 +56,7 @@ final class LintCommand implements CommandInterface
             'Locale' => $output->warning($runtime->locale),
         ];
 
-        if ($input->globalOptions->banner) {
+        if ($input->globalOptions->visuals) {
             $style->renderBanner('Lint', $meta, 'ICU MessageFormat linting');
         }
 

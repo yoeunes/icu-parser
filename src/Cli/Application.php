@@ -42,36 +42,41 @@ final class Application
      */
     public function run(array $argv): int
     {
+        $parsed = $this->parseArguments($argv);
+        $options = $parsed->options;
+        $args = $parsed->args;
+
+        $this->configureOutput($options);
+
+        if ($options->help) {
+            return $this->showHelpFor($args, $options);
+        }
+
+        $commandName = $this->resolveCommandName($args);
+        if (null === $commandName) {
+            return $this->showHelpAndExit($options);
+        }
+
+        $command = $this->getCommand($commandName);
+        if (null === $command) {
+            return $this->handleUnknownCommand($commandName, $options);
+        }
+
+        $commandArgs = $this->extractCommandArgs($args);
+        $input = new Input($commandName, $commandArgs, $options);
+
+        return $command->run($input, $this->output);
+    }
+
+    /**
+     * @param array<int, string> $argv
+     */
+    private function parseArguments(array $argv): ParsedGlobalOptions
+    {
         $args = $argv;
         array_shift($args);
 
-        $parsed = $this->globalOptionsParser->parse($args);
-        $this->configureOutput($parsed->options);
-
-        if (null !== $parsed->error) {
-            $this->output->write($this->output->error('Error: '.$parsed->error."\n"));
-
-            return 1;
-        }
-
-        if ($parsed->options->help) {
-            return $this->helpCommand->run(new Input('help', $parsed->args, $parsed->options), $this->output);
-        }
-
-        $commandName = $parsed->args[0] ?? 'help';
-        $command = $this->getCommand($commandName);
-
-        if (null === $command) {
-            $this->output->write($this->output->error('Unknown command: '.$commandName."\n\n"));
-            $this->helpCommand->run(new Input('help', [], $parsed->options), $this->output);
-
-            return 1;
-        }
-
-        $commandArgs = array_slice($parsed->args, 1);
-        $input = new Input($commandName, $commandArgs, $parsed->options);
-
-        return $command->run($input, $this->output);
+        return $this->globalOptionsParser->parse($args);
     }
 
     private function configureOutput(GlobalOptions $options): void
@@ -85,8 +90,54 @@ final class Application
         return $forced ?? (\function_exists('posix_isatty') && posix_isatty(\STDOUT));
     }
 
+    /**
+     * @param array<int, string> $args
+     */
+    private function showHelpFor(array $args, GlobalOptions $options): int
+    {
+        $targetCommand = $args[0] ?? null;
+
+        return $this->helpCommand->run(
+            new Input('help', null !== $targetCommand ? [$targetCommand] : [], $options),
+            $this->output,
+        );
+    }
+
+    /**
+     * @param array<int, string> $args
+     */
+    private function resolveCommandName(array $args): ?string
+    {
+        return $args[0] ?? null;
+    }
+
+    private function showHelpAndExit(GlobalOptions $options): int
+    {
+        $this->helpCommand->run(new Input('help', [], $options), $this->output);
+
+        return 1;
+    }
+
+    private function handleUnknownCommand(string $commandName, GlobalOptions $options): int
+    {
+        $this->output->write($this->output->error("Unknown command: {$commandName}\n\n"));
+        $this->helpCommand->run(new Input('help', [], $options), $this->output);
+
+        return 1;
+    }
+
     private function getCommand(string $name): ?CommandInterface
     {
         return $this->commands[$name] ?? null;
+    }
+
+    /**
+     * @param array<int, string> $args
+     *
+     * @return array<int, string>
+     */
+    private function extractCommandArgs(array $args): array
+    {
+        return \array_slice($args, 1);
     }
 }

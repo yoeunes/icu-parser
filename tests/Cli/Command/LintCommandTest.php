@@ -46,7 +46,7 @@ final class LintCommandTest extends FilesystemTestCase
     {
         $command = new LintCommand();
         $input = new Input('lint', ['/nonexistent'], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -61,7 +61,7 @@ final class LintCommandTest extends FilesystemTestCase
         $command = new LintCommand();
         $tempDir = $this->createTempDir();
         $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -79,7 +79,7 @@ final class LintCommandTest extends FilesystemTestCase
         $this->writeFile('translations/messages.en.yaml', "app:\n  hello: \"Hello {name}\"\n  count: \"{count, plural, one {# item} other {# items}}\"\n");
 
         $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -98,7 +98,7 @@ final class LintCommandTest extends FilesystemTestCase
         $this->writeFile('translations/messages.en.yaml', "app:\n  invalid: \"Hello {unclosed\"\n  valid: \"Hello {name}\"\n");
 
         $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -118,7 +118,7 @@ final class LintCommandTest extends FilesystemTestCase
         $this->writeFile('translations/messages.en.yaml', "app:\n  plural: \"{count, plural, one {#}}\"\n");
 
         $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -138,8 +138,8 @@ final class LintCommandTest extends FilesystemTestCase
 
         $this->writeFile('translations/messages.en.yaml', "app:\n  hello: \"Hello {name}\"\n");
 
-        $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, true, false));
-        $output = new Output(false, false);
+        $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, true));
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -163,7 +163,7 @@ final class LintCommandTest extends FilesystemTestCase
         $this->writeFile('translations/validators.en.yaml', "form:\n  email: \"Please enter a valid email\"\n");
 
         $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -192,7 +192,7 @@ final class LintCommandTest extends FilesystemTestCase
 </xliff>');
 
         $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -212,7 +212,7 @@ final class LintCommandTest extends FilesystemTestCase
         $this->writeFile('translations/invalid.en.yaml', "app:\n  broken: \"Hello {unclosed\"\n");
 
         $input = new Input('lint', [$tempDir], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -239,7 +239,7 @@ final class LintCommandTest extends FilesystemTestCase
 
         try {
             $input = new Input('lint', [], new GlobalOptions(false, false, false, false));
-            $output = new Output(false, false);
+            $output = new Output(false, false, '#', '-');
 
             ob_start();
             $status = $command->run($input, $output);

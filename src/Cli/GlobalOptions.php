@@ -16,9 +16,9 @@ namespace IcuParser\Cli;
 final readonly class GlobalOptions
 {
     public function __construct(
-        public ?bool $ansi,
         public bool $quiet,
-        public bool $banner,
+        public ?bool $ansi,
         public bool $help,
+        public bool $visuals,
     ) {}
 }

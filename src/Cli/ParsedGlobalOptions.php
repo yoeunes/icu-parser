@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace IcuParser\Cli;
 
-final readonly class ParsedInput
+final readonly class ParsedGlobalOptions
 {
     /**
      * @param array<int, string> $args
@@ -21,6 +21,5 @@ final readonly class ParsedInput
     public function __construct(
         public GlobalOptions $options,
         public array $args,
-        public ?string $error = null,
     ) {}
 }

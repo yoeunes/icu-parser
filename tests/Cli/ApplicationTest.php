@@ -29,7 +29,7 @@ final class ApplicationTest extends TestCase
     protected function setUp(): void
     {
         $parser = new GlobalOptionsParser();
-        $output = new Output(true, false); // ansi on, not quiet
+        $output = new Output(true, false, '#', '-'); // ansi on, not quiet
         $this->helpCommand = $this->createMock(CommandInterface::class);
         $this->helpCommand->method('getName')->willReturn('help');
         $this->helpCommand->method('getAliases')->willReturn([]);
@@ -44,7 +44,7 @@ final class ApplicationTest extends TestCase
         $result = $this->app->run(['script', '--unknown']);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('Error: Unknown option: --unknown', (string) $output);
+        $this->assertStringContainsString('Unknown command: --unknown', (string) $output);
         $this->assertSame(1, $result);
     }
 
@@ -91,12 +91,12 @@ final class ApplicationTest extends TestCase
 
     public function test_run_defaults_to_help(): void
     {
-        $this->helpCommand->method('run')->willReturn(0);
+        $this->helpCommand->method('run')->willReturn(1);
         $this->helpCommand->method('getName')->willReturn('help');
         $this->helpCommand->method('getAliases')->willReturn([]);
 
         $result = $this->app->run(['script']);
 
-        $this->assertSame(0, $result);
+        $this->assertSame(1, $result);
     }
 }

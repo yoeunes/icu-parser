@@ -56,7 +56,7 @@ final class HighlightCommand implements CommandInterface
             'Locale' => $output->warning($runtime->locale),
         ];
 
-        if ($input->globalOptions->banner) {
+        if ($input->globalOptions->visuals) {
             $style->renderBanner('Highlight', $meta, 'ICU MessageFormat highlighting');
         }
 

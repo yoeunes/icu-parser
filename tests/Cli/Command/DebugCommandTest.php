@@ -46,7 +46,7 @@ final class DebugCommandTest extends TestCase
     {
         $command = new DebugCommand();
         $input = new Input('debug', [], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -61,7 +61,7 @@ final class DebugCommandTest extends TestCase
     {
         $command = new DebugCommand();
         $input = new Input('debug', ['Hello {name}'], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -78,7 +78,7 @@ final class DebugCommandTest extends TestCase
     {
         $command = new DebugCommand();
         $input = new Input('debug', ['{count, plural, one {# item} other {# items}}'], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -95,7 +95,7 @@ final class DebugCommandTest extends TestCase
     {
         $command = new DebugCommand();
         $input = new Input('debug', ['Hello {unclosed'], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -108,8 +108,8 @@ final class DebugCommandTest extends TestCase
     public function test_run_with_banner_enabled(): void
     {
         $command = new DebugCommand();
-        $input = new Input('debug', ['Hello {name}'], new GlobalOptions(false, false, true, false));
-        $output = new Output(false, false);
+        $input = new Input('debug', ['Hello {name}'], new GlobalOptions(false, false, false, true));
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -127,7 +127,7 @@ final class DebugCommandTest extends TestCase
     {
         $command = new DebugCommand();
         $input = new Input('debug', ['Hello World'], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
@@ -143,7 +143,7 @@ final class DebugCommandTest extends TestCase
     {
         $command = new DebugCommand();
         $input = new Input('debug', ['{gender, select, male {He} female {She} other {They} } likes it.'], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);

@@ -13,11 +13,10 @@ declare(strict_types=1);
 
 namespace IcuParser\Tests\Cli\Command;
 
-use IcuParser\Cli\Command\CommandInterface;
-use IcuParser\Cli\Command\HelpCommand;
 use IcuParser\Cli\GlobalOptions;
 use IcuParser\Cli\Input;
 use IcuParser\Cli\Output;
+use IcuParser\Cli\Command\HelpCommand;
 use PHPUnit\Framework\TestCase;
 
 final class HelpCommandTest extends TestCase
@@ -40,127 +39,161 @@ final class HelpCommandTest extends TestCase
     {
         $command = new HelpCommand();
 
-        $this->assertSame('Show available commands.', $command->getDescription());
+        $this->assertSame('Display this help message', $command->getDescription());
     }
 
-    public function test_set_commands(): void
+    public function test_run_shows_help_sections(): void
     {
         $command = new HelpCommand();
-        $mockCommand = $this->createMock(CommandInterface::class);
-        $mockCommand->method('getName')->willReturn('test');
-        $mockCommand->method('getDescription')->willReturn('Test command');
-
-        $command->setCommands([$mockCommand]);
-
-        // Test that commands are set by running the command
         $input = new Input('help', [], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
         $content = ob_get_clean() ?: '';
 
         $this->assertSame(0, $status);
-        $this->assertStringContainsString('test', $content);
-        $this->assertStringContainsString('Test command', $content);
-    }
-
-    public function test_run_with_no_commands(): void
-    {
-        $command = new HelpCommand();
-        $input = new Input('help', [], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
-
-        ob_start();
-        $status = $command->run($input, $output);
-        $content = ob_get_clean() ?: '';
-
-        $this->assertSame(0, $status);
-        $this->assertStringContainsString('Usage: icu <command> [options]', $content);
+        $this->assertStringContainsString('Description:', $content);
+        $this->assertStringContainsString('Usage:', $content);
         $this->assertStringContainsString('Commands:', $content);
-        $this->assertStringContainsString('Global options:', $content);
+        $this->assertStringContainsString('Global Options:', $content);
+        $this->assertStringContainsString('Examples:', $content);
     }
 
-    public function test_run_with_multiple_commands(): void
+    public function test_run_shows_commands(): void
     {
         $command = new HelpCommand();
-
-        $mockCommand1 = $this->createMock(CommandInterface::class);
-        $mockCommand1->method('getName')->willReturn('audit');
-        $mockCommand1->method('getDescription')->willReturn('Audit translations');
-
-        $mockCommand2 = $this->createMock(CommandInterface::class);
-        $mockCommand2->method('getName')->willReturn('debug');
-        $mockCommand2->method('getDescription')->willReturn('Debug ICU messages');
-
-        $mockCommand3 = $this->createMock(CommandInterface::class);
-        $mockCommand3->method('getName')->willReturn('lint');
-        $mockCommand3->method('getDescription')->willReturn('Lint translation files');
-
-        $command->setCommands([$mockCommand1, $mockCommand2, $mockCommand3]);
-
         $input = new Input('help', [], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
         $content = ob_get_clean() ?: '';
 
         $this->assertSame(0, $status);
-        $this->assertStringContainsString('audit', $content);
         $this->assertStringContainsString('debug', $content);
+        $this->assertStringContainsString('Parse an ICU message and dump its AST and parameters', $content);
+        $this->assertStringContainsString('audit', $content);
+        $this->assertStringContainsString('highlight', $content);
         $this->assertStringContainsString('lint', $content);
-        $this->assertStringContainsString('Audit translations', $content);
-        $this->assertStringContainsString('Debug ICU messages', $content);
-        $this->assertStringContainsString('Lint translation files', $content);
-    }
-
-    public function test_run_with_duplicate_command_names(): void
-    {
-        $command = new HelpCommand();
-
-        $mockCommand1 = $this->createMock(CommandInterface::class);
-        $mockCommand1->method('getName')->willReturn('test');
-        $mockCommand1->method('getDescription')->willReturn('First test command');
-
-        $mockCommand2 = $this->createMock(CommandInterface::class);
-        $mockCommand2->method('getName')->willReturn('test');
-        $mockCommand2->method('getDescription')->willReturn('Second test command');
-
-        $command->setCommands([$mockCommand1, $mockCommand2]);
-
-        $input = new Input('help', [], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
-
-        ob_start();
-        $status = $command->run($input, $output);
-        $content = ob_get_clean() ?: '';
-
-        $this->assertSame(0, $status);
-        // Should only show command once (no duplicates)
-        $this->assertStringContainsString('test', $content);
-        // Count lines that start with 'test' to avoid counting 'test' in descriptions
-        $lines = explode("\n", $content);
-        $testLines = array_filter($lines, fn ($line): bool => 1 === preg_match('/^\s*test\s/', (string) $line));
-        $this->assertCount(1, $testLines, 'Command should only appear once');
+        $this->assertStringContainsString('version', $content);
+        $this->assertStringContainsString('self-update', $content);
     }
 
     public function test_run_shows_global_options(): void
     {
         $command = new HelpCommand();
         $input = new Input('help', [], new GlobalOptions(false, false, false, false));
-        $output = new Output(false, false);
+        $output = new Output(false, false, '#', '-');
 
         ob_start();
         $status = $command->run($input, $output);
         $content = ob_get_clean() ?: '';
 
         $this->assertSame(0, $status);
-        $this->assertStringContainsString('Global options:', $content);
-        $this->assertStringContainsString('--ansi        Force ANSI output.', $content);
-        $this->assertStringContainsString('--no-ansi     Disable ANSI output.', $content);
-        $this->assertStringContainsString('--no-banner   Hide the runtime banner.', $content);
-        $this->assertStringContainsString('-q, --quiet   Suppress output.', $content);
-        $this->assertStringContainsString('-h, --help    Show this help message.', $content);
+        $this->assertStringContainsString('Global Options:', $content);
+        $this->assertStringContainsString('--ansi', $content);
+        $this->assertStringContainsString('--no-ansi', $content);
+        $this->assertStringContainsString('--quiet', $content);
+        $this->assertStringContainsString('--no-visuals', $content);
+    }
+
+    public function test_run_shows_lint_options(): void
+    {
+        $command = new HelpCommand();
+        $input = new Input('help', [], new GlobalOptions(false, false, false, false));
+        $output = new Output(false, false, '#', '-');
+
+        ob_start();
+        $status = $command->run($input, $output);
+        $content = ob_get_clean() ?: '';
+
+        $this->assertSame(0, $status);
+        $this->assertStringContainsString('Lint Options:', $content);
+        $this->assertStringContainsString('--format <format>', $content);
+        $this->assertStringContainsString('--output <file>', $content);
+        $this->assertStringContainsString('--verbose', $content);
+    }
+
+    public function test_run_shows_examples(): void
+    {
+        $command = new HelpCommand();
+        $input = new Input('help', [], new GlobalOptions(false, false, false, false));
+        $output = new Output(false, false, '#', '-');
+
+        ob_start();
+        $status = $command->run($input, $output);
+        $content = ob_get_clean() ?: '';
+
+        $this->assertSame(0, $status);
+        $this->assertStringContainsString('Examples:', $content);
+        $this->assertStringContainsString('debug', $content);
+        $this->assertStringContainsString('audit', $content);
+        $this->assertStringContainsString('highlight', $content);
+        $this->assertStringContainsString('lint', $content);
+    }
+
+    public function test_run_with_specific_command_shows_command_help(): void
+    {
+        $command = new HelpCommand();
+        $input = new Input('help', ['lint'], new GlobalOptions(false, false, false, false));
+        $output = new Output(false, false, '#', '-');
+
+        ob_start();
+        $status = $command->run($input, $output);
+        $content = ob_get_clean() ?: '';
+
+        $this->assertSame(0, $status);
+        $this->assertStringContainsString('Description:', $content);
+        $this->assertStringContainsString('Usage:', $content);
+        $this->assertStringContainsString('lint', $content);
+    }
+
+    public function test_run_with_unknown_command_shows_error(): void
+    {
+        $command = new HelpCommand();
+        $input = new Input('help', ['unknown-command'], new GlobalOptions(false, false, false, false));
+        $output = new Output(false, false, '#', '-');
+
+        ob_start();
+        $status = $command->run($input, $output);
+        $content = ob_get_clean() ?: '';
+
+        $this->assertSame(1, $status);
+        $this->assertStringContainsString('Unknown command:', $content);
+    }
+
+    public function test_run_with_visuals_disabled_shows_banner(): void
+    {
+        $command = new HelpCommand();
+        // With visuals disabled (4th param in GlobalOptions), no banner should be shown
+        $input = new Input('help', [], new GlobalOptions(false, false, false, false));
+        $output = new Output(false, false, '#', '-');
+
+        ob_start();
+        $status = $command->run($input, $output);
+        $content = ob_get_clean() ?: '';
+
+        $this->assertSame(0, $status);
+        // Without visuals, banner should not be shown
+        $this->assertStringNotContainsString('IcuParser', $content);
+    }
+
+    public function test_run_with_visuals_enabled_shows_banner(): void
+    {
+        $command = new HelpCommand();
+        // With visuals enabled (4th param in GlobalOptions), banner should be shown
+        $input = new Input('help', [], new GlobalOptions(false, false, false, true));
+        $output = new Output(false, false, '#', '-');
+
+        ob_start();
+        $status = $command->run($input, $output);
+        $content = ob_get_clean() ?: '';
+
+        $this->assertSame(0, $status);
+        // With visuals, banner should be shown
+        $this->assertStringContainsString('IcuParser', $content);
+        $this->assertStringContainsString('Runtime', $content);
+        $this->assertStringContainsString('Command', $content);
     }
 }
