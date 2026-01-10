@@ -170,6 +170,16 @@ abstract class HighlighterVisitor implements NodeVisitorInterface, TokenStylerIn
         return $output;
     }
 
+    final public function style(string $content, string $type): string
+    {
+        return $this->wrap($content, $type);
+    }
+
+    final public function escapeToken(string $string): string
+    {
+        return $this->escape($string);
+    }
+
     /**
      * @param array<int, OptionNode> $options
      */
@@ -235,14 +245,4 @@ abstract class HighlighterVisitor implements NodeVisitorInterface, TokenStylerIn
      * Escapes special characters for the output format.
      */
     abstract protected function escape(string $string): string;
-
-    final public function style(string $content, string $type): string
-    {
-        return $this->wrap($content, $type);
-    }
-
-    final public function escapeToken(string $string): string
-    {
-        return $this->escape($string);
-    }
 }

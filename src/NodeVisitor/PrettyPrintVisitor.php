@@ -36,6 +36,7 @@ use IcuParser\Node\TextNode;
 final class PrettyPrintVisitor implements NodeVisitorInterface
 {
     private bool $pluralContext = false;
+
     private bool $choiceContext = false;
 
     public function __construct(
