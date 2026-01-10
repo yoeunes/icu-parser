@@ -102,6 +102,41 @@ final class AstDumperTest extends TestCase
         $this->assertCount(2, $selectDump['options']);
     }
 
+    public function test_dumps_selectordinal(): void
+    {
+        $dump = $this->dumpMessage('{count, selectordinal, one {#st} other {#th}}');
+
+        $this->assertSame('Message', $dump['type']);
+        /** @var array{type: string, name: string, options: list<array<string, mixed>>} $selectDump */
+        $selectDump = $dump['parts'][0];
+        $this->assertSame('SelectOrdinal', $selectDump['type']);
+        $this->assertSame('count', $selectDump['name']);
+        $this->assertCount(2, $selectDump['options']);
+    }
+
+    public function test_dumps_spellout_ordinal_duration_arguments(): void
+    {
+        $dump = $this->dumpMessage('Spellout {count, spellout} Ordinal {rank, ordinal} Duration {elapsed, duration}');
+
+        $this->assertSame('Message', $dump['type']);
+        $this->assertCount(6, $dump['parts']);
+
+        /** @var array{type: string, name: string} $spelloutPart */
+        $spelloutPart = $dump['parts'][1];
+        $this->assertSame('Spellout', $spelloutPart['type']);
+        $this->assertSame('count', $spelloutPart['name']);
+
+        /** @var array{type: string, name: string} $ordinalPart */
+        $ordinalPart = $dump['parts'][3];
+        $this->assertSame('Ordinal', $ordinalPart['type']);
+        $this->assertSame('rank', $ordinalPart['name']);
+
+        /** @var array{type: string, name: string} $durationPart */
+        $durationPart = $dump['parts'][5];
+        $this->assertSame('Duration', $durationPart['type']);
+        $this->assertSame('elapsed', $durationPart['name']);
+    }
+
     public function test_dumps_pound(): void
     {
         $dump = $this->dumpMessage('{count, plural, one {# item} other {# items}}');

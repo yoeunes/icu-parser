@@ -128,4 +128,73 @@ final class PluralRulesTest extends TestCase
         $this->assertSame('other', PluralRules::select(1.5, 'en'));
         $this->assertSame('other', PluralRules::select(0.1, 'en'));
     }
+
+    public function test_fallback_locale_resolution(): void
+    {
+        $this->assertSame('en', $this->callPluralRules('fallbackLocale', ['en_US']));
+        $this->assertSame('sr-Latn', $this->callPluralRules('fallbackLocale', ['sr-Latn-RS']));
+        $this->assertNull($this->callPluralRules('fallbackLocale', ['en']));
+    }
+
+    public function test_legacy_rule_set_resolution(): void
+    {
+        $this->assertSame('pt', $this->callPluralRules('normalizeLanguage', ['PT-BR']));
+
+        /** @var array{categories: list<string>, rule: string} $ruleSet */
+        $ruleSet = $this->callPluralRules('getLegacyRuleSet', ['pt_BR', false]);
+        $this->assertSame(['one', 'other'], $ruleSet['categories']);
+
+        /** @var array{categories: list<string>, rule: string} $ordinalRuleSet */
+        $ordinalRuleSet = $this->callPluralRules('getLegacyRuleSet', ['fr_CA', true]);
+        $this->assertSame(['other'], $ordinalRuleSet['categories']);
+    }
+
+    public function test_legacy_rule_evaluator_supports_ternaries_and_conditions(): void
+    {
+        $rule = 'n == 0 ? zero : n == 1 ? one : other';
+
+        $this->assertSame('zero', $this->callPluralRules('evaluateTernary', [$rule, 0, 0, 0.0, 0, 0]));
+        $this->assertSame('one', $this->callPluralRules('evaluateTernary', [$rule, 1, 0, 0.0, 1, 0]));
+        $this->assertSame('other', $this->callPluralRules('evaluateTernary', [$rule, 2, 0, 0.0, 2, 0]));
+
+        $this->assertSame('one', $this->callPluralRules('evaluateRule', ['i == 1 ? one : other', 1, 0, 0.0, 1, 0]));
+    }
+
+    public function test_legacy_condition_parser_handles_operators(): void
+    {
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['i == 1 && v == 0', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['i != 2 || v < 0', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['i + 1 * 2 >= 3 && i % 2 == 1', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['i / 0 == 0', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['i - 1 <= 0', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['-i == -1', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['f == 0 && t == 0', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['(i == 1)', 1, 0, 0.0, 1, 0]));
+        $this->assertTrue($this->callPluralRules('evaluateCondition', ['i', 1, 0, 0.0, 1, 0]));
+    }
+
+    public function test_legacy_tokenizer_and_colon_detection(): void
+    {
+        /** @var array<int, array{type: string, value: float|string}> $tokens */
+        $tokens = $this->callPluralRules('tokenizeExpression', ['(i + 1.5) * 2 >= 4 && i % 2 == 1']);
+        $types = array_column($tokens, 'type');
+
+        $this->assertContains('paren', $types);
+        $this->assertContains('op', $types);
+        $this->assertContains('number', $types);
+        $this->assertContains('var', $types);
+
+        $this->assertSame(2, $this->callPluralRules('findColon', ['b : c']));
+        $this->assertFalse($this->callPluralRules('findColon', ['no-colon']));
+    }
+
+    /**
+     * @param array<int, mixed> $args
+     */
+    private function callPluralRules(string $method, array $args = []): mixed
+    {
+        $reflection = new \ReflectionMethod(PluralRules::class, $method);
+
+        return $reflection->invokeArgs(null, $args);
+    }
 }

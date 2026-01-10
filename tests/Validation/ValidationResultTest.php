@@ -30,6 +30,18 @@ final class ValidationResultTest extends TestCase
         $this->assertTrue($result->hasErrors());
     }
 
+    public function test_add_and_get_warnings(): void
+    {
+        $result = new ValidationResult();
+        $warning = new ValidationError('Test warning', 5, 'source', 'code');
+
+        $result->addWarning($warning);
+
+        $this->assertSame([$warning], $result->getWarnings());
+        $this->assertTrue($result->hasWarnings());
+        $this->assertSame(0, $result->count());
+    }
+
     public function test_count(): void
     {
         $result = new ValidationResult();

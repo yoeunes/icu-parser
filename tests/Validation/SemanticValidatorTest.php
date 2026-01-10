@@ -93,6 +93,16 @@ final class SemanticValidatorTest extends TestCase
         $this->assertFalse($result->hasErrors());
     }
 
+    public function test_validates_spellout_ordinal_and_duration(): void
+    {
+        $source = 'Spellout {count, spellout} Ordinal {rank, ordinal} Duration {elapsed, duration}';
+        $message = $this->parser->parse($source);
+        $result = $this->validator->validate($message, $source);
+
+        $this->assertFalse($result->hasErrors());
+        $this->assertFalse($result->hasWarnings());
+    }
+
     public function test_detects_choice_with_out_of_order_limits(): void
     {
         $message = $this->parser->parse('{value, choice, 1#one|0#zero}');
