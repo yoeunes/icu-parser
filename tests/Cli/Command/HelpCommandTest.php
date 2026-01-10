@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace IcuParser\Tests\Cli\Command;
 
+use IcuParser\Cli\Command\HelpCommand;
 use IcuParser\Cli\GlobalOptions;
 use IcuParser\Cli\Input;
 use IcuParser\Cli\Output;
-use IcuParser\Cli\Command\HelpCommand;
 use PHPUnit\Framework\TestCase;
 
 final class HelpCommandTest extends TestCase

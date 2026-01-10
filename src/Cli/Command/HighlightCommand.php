@@ -55,6 +55,7 @@ final class HighlightCommand implements CommandInterface
             $arg = $input->args[$i];
             if (str_starts_with($arg, '--format=')) {
                 $format = substr($arg, 9);
+
                 break;
             }
             if ('--format' === $arg) {

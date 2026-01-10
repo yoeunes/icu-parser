@@ -30,7 +30,7 @@ use IcuParser\Node\TextNode;
 /**
  * Base visitor for highlighting ICU message syntax.
  *
- * @extends AbstractNodeVisitor<string>
+ * @implements NodeVisitorInterface<string>
  */
 abstract class HighlighterVisitor implements NodeVisitorInterface
 {
@@ -152,15 +152,17 @@ abstract class HighlighterVisitor implements NodeVisitorInterface
             .$this->wrap(',', 'punctuation')
             .$this->wrap(' ', 'whitespace');
 
-        foreach ($node->options as $option) {
-            $output .= $this->wrap($this->escape((string) $option->selector), 'selector')
-                .$this->wrap('<', 'punctuation')
-                .$this->wrap($this->escape((string) $option->explicitValue), 'number')
-                .$this->wrap(' ', 'whitespace')
-                .$this->wrap('{', 'brace')
-                .$option->message->accept($this)
-                .$this->wrap('}', 'brace')
-                .$this->wrap(' ', 'whitespace');
+        foreach ($node->options as $index => $option) {
+            if (0 < $index) {
+                $output .= $this->wrap('|', 'punctuation')
+                    .$this->wrap(' ', 'whitespace');
+            }
+
+            $operator = $option->isExclusive ? '<' : '#';
+
+            $output .= $this->wrap($this->escape((string) $option->limit), 'number')
+                .$this->wrap($operator, 'punctuation')
+                .$option->message->accept($this);
         }
 
         $output .= $this->wrap('}', 'brace');
@@ -191,9 +193,9 @@ abstract class HighlighterVisitor implements NodeVisitorInterface
     }
 
     /**
-     * @param array<string, string>|null $options
+     * @param array<string, string>|string|null $styleOrOptions
      */
-    protected function renderTypeArgument(string $name, string $type, $styleOrOptions = null): string
+    protected function renderTypeArgument(string $name, string $type, string|array|null $styleOrOptions = null): string
     {
         $output = $this->wrap('{', 'brace')
             .$this->wrap($this->escape($name), 'argument')
@@ -213,9 +215,9 @@ abstract class HighlighterVisitor implements NodeVisitorInterface
             foreach ($styleOrOptions as $key => $value) {
                 $output .= $this->wrap(',', 'punctuation')
                     .$this->wrap(' ', 'whitespace')
-                    .$this->wrap($this->escape($key), 'option')
+                    .$this->wrap($this->escape((string) $key), 'option')
                     .$this->wrap('=', 'punctuation')
-                    .$this->wrap($this->escape($value), 'string');
+                    .$this->wrap($this->escape((string) $value), 'string');
             }
         }
 

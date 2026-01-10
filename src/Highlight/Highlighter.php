@@ -37,7 +37,7 @@ final readonly class Highlighter
         $highlighted = $ast->accept($visitor);
 
         // For legacy theme support, if a custom theme is provided, apply its colors
-        if (null !== $theme && !$this->isDefaultTheme($theme)) {
+        if (!$this->isDefaultTheme($theme)) {
             return $this->applyCustomTheme($highlighted, $theme);
         }
 

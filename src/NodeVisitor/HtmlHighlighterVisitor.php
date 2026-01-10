@@ -33,7 +33,7 @@ final class HtmlHighlighterVisitor extends HighlighterVisitor
     ];
 
     public function __construct(
-        private string $wrapper = 'span',
+        private readonly string $wrapper = 'span',
     ) {}
 
     protected function wrap(string $content, string $type): string
@@ -59,6 +59,6 @@ final class HtmlHighlighterVisitor extends HighlighterVisitor
 
     private function escapeHtml(string $string): string
     {
-        return htmlspecialchars($string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return htmlspecialchars($string, \ENT_QUOTES | \ENT_HTML5, 'UTF-8');
     }
 }

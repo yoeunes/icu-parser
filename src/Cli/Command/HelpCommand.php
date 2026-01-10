@@ -66,15 +66,23 @@ final class HelpCommand implements CommandInterface
             $this->formatUsage($output, $binary),
         ]);
 
-        $commands = [
-            ['debug', 'Parse an ICU message and dump its AST and parameters'],
-            ['audit', 'Audit ICU messages, usage, and locale consistency'],
-            ['highlight', 'Highlight an ICU message string'],
-            ['lint', 'Validate ICU messages in YAML and XLIFF files'],
-            ['version', 'Display version information'],
-            ['self-update', 'Update the CLI phar to the latest release'],
-            ['help', 'Display this help message'],
-        ];
+        if ([] !== $this->commands) {
+            $commands = array_map(
+                static fn (CommandInterface $command): array => [$command->getName(), $command->getDescription()],
+                $this->commands,
+            );
+        } else {
+            $commands = [
+                ['debug', 'Parse an ICU message and dump its AST and parameters'],
+                ['format', 'Format and highlight an ICU message for readability'],
+                ['audit', 'Audit ICU messages, usage, and locale consistency'],
+                ['highlight', 'Highlight an ICU message string'],
+                ['lint', 'Validate ICU messages in YAML and XLIFF files'],
+                ['version', 'Display version information'],
+                ['self-update', 'Update the CLI phar to the latest release'],
+                ['help', 'Display this help message'],
+            ];
+        }
         $this->renderTableSection($output, 'Commands', $commands, fn (string $value): string => $this->formatCommand($output, $value));
 
         $globalOptions = [
@@ -96,6 +104,7 @@ final class HelpCommand implements CommandInterface
 
         $examples = [
             [[$binary, 'debug', "'{count, plural, one {# item} other {# items}}'"], 'Parse and show AST'],
+            [[$binary, 'format', "'{count, plural, one {# item} other {# items}}'"], 'Format and highlight'],
             [[$binary, 'audit', 'translations/'], 'Audit translation files'],
             [[$binary, 'highlight', "'Hello {name}'"], 'Quick highlight'],
             [[$binary, 'lint', 'translations/'], 'Lint translation files'],
@@ -114,7 +123,7 @@ final class HelpCommand implements CommandInterface
         if (null === $commandData) {
             $output->write($output->error("Unknown command: {$command}\n\n"));
             $this->renderTextSection($output, 'Available Commands', [
-                'debug', 'audit', 'highlight', 'lint', 'version', 'self-update', 'help',
+                'debug', 'format', 'audit', 'highlight', 'lint', 'version', 'self-update', 'help',
             ]);
 
             return 1;
@@ -156,6 +165,23 @@ final class HelpCommand implements CommandInterface
                 'examples' => [
                     [[$this->resolveInvocation(), 'debug', "'{count, plural, one {# item} other {# items}}'"], 'Parse a plural message'],
                     [[$this->resolveInvocation(), 'debug', "'{gender, select, male {He} female {She} other {They}'"], 'Parse a select message'],
+                ],
+            ],
+            'format' => [
+                'description' => 'Format and highlight an ICU message for readability',
+                'options' => [
+                    ['--indent <n>', 'Indentation size (default: 4)'],
+                    ['--no-align', 'Disable selector alignment'],
+                ],
+                'notes' => [
+                    'Pretty-prints the ICU message with indentation and selector alignment.',
+                    'Applies syntax highlighting for better readability.',
+                    'Outputs the formatted message only.',
+                ],
+                'examples' => [
+                    [[$this->resolveInvocation(), 'format', "'{count, plural, one {# item} other {# items}}'"], 'Format a plural message'],
+                    [[$this->resolveInvocation(), 'format', '--indent=2', "'{gender, select, male {He} female {She} other {They}'"], 'Format with 2-space indent'],
+                    [[$this->resolveInvocation(), 'format', "'{gender_of_host, select, female {{host} invites {guest} to her party.} other {{host} invites {guest} to their party.}'"], 'Format nested select'],
                 ],
             ],
             'audit' => [
@@ -238,7 +264,7 @@ final class HelpCommand implements CommandInterface
 
         if ('lint' === $command || 'audit' === $command) {
             $usage .= ' '.$output->color('[options]', Output::CYAN).' '.$output->color('<path>', Output::GREEN);
-        } elseif (\in_array($command, ['debug', 'highlight'], true)) {
+        } elseif (\in_array($command, ['debug', 'highlight', 'format'], true)) {
             $usage .= ' '.$output->color('[options]', Output::CYAN).' '.$output->color('<message>', Output::GREEN);
         } elseif ('help' === $command) {
             $usage .= ' '.$output->color('[command]', Output::GREEN);
@@ -396,7 +422,7 @@ final class HelpCommand implements CommandInterface
             return $output->color($token, Output::GREEN);
         }
 
-        if (\in_array($token, ['debug', 'audit', 'highlight', 'lint', 'version', 'self-update', 'help'], true)) {
+        if (\in_array($token, ['debug', 'format', 'audit', 'highlight', 'lint', 'version', 'self-update', 'help'], true)) {
             return $output->color($token, Output::YELLOW.Output::BOLD);
         }
 

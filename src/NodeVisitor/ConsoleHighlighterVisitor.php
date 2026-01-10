@@ -32,7 +32,7 @@ final class ConsoleHighlighterVisitor extends HighlighterVisitor
     private const STYLE = "\033[90m";       // Gray
 
     public function __construct(
-        private bool $ansi = true,
+        private readonly bool $ansi = true,
     ) {}
 
     protected function wrap(string $content, string $type): string

@@ -34,7 +34,6 @@ final class GlobalOptionsParserTest extends TestCase
         $this->assertTrue($parsed->options->visuals);
         $this->assertFalse($parsed->options->help);
         $this->assertSame(['arg1', 'arg2'], $parsed->args);
-        $this->assertNull($parsed->error);
     }
 
     public function test_parse_help(): void

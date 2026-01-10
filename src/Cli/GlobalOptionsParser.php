@@ -81,4 +81,3 @@ final class GlobalOptionsParser
         return '--no-visuals' === $arg || '--no-art' === $arg || '--no-splash' === $arg;
     }
 }
-

@@ -44,6 +44,7 @@ require_once $autoloadPath;
 use IcuParser\Cli\Application;
 use IcuParser\Cli\Command\AuditCommand;
 use IcuParser\Cli\Command\DebugCommand;
+use IcuParser\Cli\Command\FormatCommand;
 use IcuParser\Cli\Command\HelpCommand;
 use IcuParser\Cli\Command\HighlightCommand;
 use IcuParser\Cli\Command\LintCommand;
@@ -66,14 +67,16 @@ $app->register(new SelfUpdateCommand(new SelfUpdater()));
 
 $debugCommand = new DebugCommand();
 $auditCommand = new AuditCommand();
+$formatCommand = new FormatCommand();
 $highlightCommand = new HighlightCommand();
 $lintCommand = new LintCommand();
 
 $app->register($debugCommand);
 $app->register($auditCommand);
+$app->register($formatCommand);
 $app->register($highlightCommand);
 $app->register($lintCommand);
 
-$helpCommand->setCommands([$helpCommand, new VersionCommand(), new SelfUpdateCommand(new SelfUpdater()), $debugCommand, $auditCommand, $highlightCommand, $lintCommand]);
+$helpCommand->setCommands([$helpCommand, new VersionCommand(), new SelfUpdateCommand(new SelfUpdater()), $debugCommand, $auditCommand, $formatCommand, $highlightCommand, $lintCommand]);
 
 exit($app->run($argv));

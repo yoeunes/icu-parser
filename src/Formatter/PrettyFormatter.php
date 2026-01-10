@@ -168,15 +168,15 @@ final readonly class PrettyFormatter
         bool $pluralContext,
         bool $choiceContext,
     ): string {
-        if ($this->isInlineMessage($message)) {
-            return '{'.$this->formatMessage($message, $options, $pluralContext, $choiceContext).'}';
-        }
-
         $lineBreak = $options->lineBreak;
         $content = $this->formatMessage($message, $options, $pluralContext, $choiceContext);
-        $content = $this->indentMultiline($content, $baseIndent.$options->indent, $lineBreak);
+        if ($this->isInlineMessage($message) && !str_contains($content, $lineBreak)) {
+            return '{'.$content.'}';
+        }
 
-        return '{'.$lineBreak.$content.$lineBreak.$baseIndent.'}';
+        $content = $this->indentFollowingLines($content, $baseIndent, $lineBreak);
+
+        return '{'.$content.'}';
     }
 
     private function isInlineMessage(MessageNode $message): bool
@@ -210,21 +210,6 @@ final readonly class PrettyFormatter
     private function formatNumber(int|float $number): string
     {
         return (string) $number;
-    }
-
-    private function indentMultiline(string $text, string $prefix, string $lineBreak): string
-    {
-        if ('' === $lineBreak) {
-            return $text;
-        }
-
-        $lines = explode($lineBreak, $text);
-
-        foreach ($lines as $index => $line) {
-            $lines[$index] = $prefix.$line;
-        }
-
-        return implode($lineBreak, $lines);
     }
 
     private function indentFollowingLines(string $text, string $prefix, string $lineBreak): string
