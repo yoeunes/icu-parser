@@ -83,7 +83,7 @@ final class HighlightCommandTest extends TestCase
 
         $this->assertSame(0, $status);
         $this->assertStringContainsString('Highlight', $content);
-        $this->assertStringContainsString('ICU MessageFormat highlighting', $content);
+        $this->assertStringContainsString('ICU MessageFormat Highlighting', $content);
         $this->assertStringContainsString('Intl', $content);
         $this->assertStringContainsString('ICU', $content);
         $this->assertStringContainsString('Locale', $content);

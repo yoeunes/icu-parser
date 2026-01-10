@@ -37,10 +37,10 @@ final class HighlighterTest extends TestCase
         $result = $highlighter->highlight($message, HighlightTheme::ansi());
 
         $expected = "\033[36m{\033[0m"
-            ."\033[34m0\033[0m"
+            ."\033[32m0\033[0m"
             ."\033[33m,\033[0m"
             .' '
-            ."\033[32mnumber\033[0m"
+            ."\033[35mnumber\033[0m"
             ."\033[36m}\033[0m";
 
         $this->assertSame($expected, $result);

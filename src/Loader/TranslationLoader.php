@@ -89,7 +89,7 @@ final class TranslationLoader
                     $path,
                     $localeDomain['locale'],
                     $localeDomain['domain'],
-                    $id,
+                    (string) $id,
                     $message,
                     $line,
                 );
