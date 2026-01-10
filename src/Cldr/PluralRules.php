@@ -227,6 +227,10 @@ final class PluralRules
         $candidate = (!is_string($canonical) || '' === $canonical) ? $locale : $canonical;
         $candidate = str_replace('-', '_', $candidate);
 
+        if (!class_exists(Locales::class)) {
+            return '' !== $candidate ? $candidate : 'en';
+        }
+
         $seen = [];
         while (null !== $candidate) {
             if (isset($seen[$candidate])) {

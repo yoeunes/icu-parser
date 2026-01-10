@@ -107,7 +107,11 @@ final class PluralRulesTest extends TestCase
     {
         $categories = PluralRules::getCategories('fr', true);
 
-        $this->assertSame(['one', 'other'], $categories);
+        if (class_exists(\Symfony\Component\Intl\Locales::class)) {
+            $this->assertSame(['one', 'other'], $categories);
+        } else {
+            $this->assertSame(['other'], $categories);
+        }
     }
 
     public function test_defaults_to_english(): void

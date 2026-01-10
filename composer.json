@@ -22,8 +22,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.2",
-        "ext-intl": "*",
-        "symfony/intl": "^7.4"
+        "ext-intl": "*"
     },
     "autoload": {
         "psr-4": {
@@ -72,6 +71,7 @@
     },
     "suggest": {
         "phpstan/phpstan": "To integrate ICU MessageFormat typing into static analysis.",
+        "symfony/intl": "Optional locale data and fallback resolution for ICU plural categories.",
         "symfony/framework-bundle": "To auto-register the IcuParser bundle in Symfony apps.",
         "symfony/translation": "To wire ICU parsing into Symfony translation workflows.",
         "symfony/twig-bundle": "To enable Twig template extraction in Symfony apps.",
